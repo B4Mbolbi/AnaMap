@@ -1,0 +1,37 @@
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    /* Включаем флекс */
+}
+
+.wrap {
+    width: 100%;
+    display: flex;
+    /* gap задает расстояние между элементами, не ломая их ширину */
+    gap: 10px;
+    /* Добавим немного отступа от краев экрана для красоты */
+    padding: 10px;
+    box-sizing: border-box;
+    background: rgb(56, 56, 56);
+
+}
+
+.tools {
+    /* Убираем width, задаем flex-basis (базовую ширину) */
+    flex: 0 0 30%;
+    height: 100%;
+    background: rgb(71, 71, 71);
+    border-radius: 20px;
+    box-shadow: 0px 0px 2px rgb(138, 135, 138);
+}
+
+.map {
+    /* Занимает все оставшееся место */
+    flex: 1;
+    height: 100%;
+    background: rgb(71, 71, 71);
+    border-radius: 20px;
+    box-shadow: 0px 0px 2px rgb(138, 135, 138);
+    /* margin здесь больше не нужен! */
+}

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналитическая карта реальности (Vanilla JS)</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+    <!-- Собственные стили -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <!-- Шапка -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon">M</div>
+            <div class="title">
+                <h1>Аналитическая карта реальности</h1>
+                <p>data-first monitoring dashboard</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="badge">
+                <div class="dot"></div>
+                <span id="event-count">0 событий</span>
+            </div>
+            <button id="btn-add-event" class="btn-primary">+ Добавить</button>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <div class="main-container">
+        <!-- Сайдбар -->
+        <aside class="sidebar">
+            <div class="panel">
+            <div class="panel-title">Фильтры</div>
+            <div class="filter-buttons" id="filter-types"></div>
+            <button id="btn-manage-categories" style="width:100%;padding:6px;margin-top:8px;font-size:11px;border:1px dashed #2a2e38;background:transparent;color:#64748b;border-radius:8px;cursor:pointer;">+ Категория</button>
+            <button id="btn-manage-statuses" style="width:100%;padding:6px;margin-top:4px;font-size:11px;border:1px dashed #2a2e38;background:transparent;color:#64748b;border-radius:8px;cursor:pointer;">+ Статус</button>
+            <div style="margin-top:8px;">
+                <input type="date" id="filter-date-from" class="date-input" style="margin-bottom:0;">
+            </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">События по типам</div>
+                <div id="stats-types"></div>
+            </div>
+
+            <!-- Список событий по категориям -->
+            <div class="panel" id="event-list-panel" style="display:none;">
+                <div class="panel-title">
+                    <span id="event-list-title">События</span>
+                    <button id="btn-close-event-list" style="float:right;background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;line-height:1;">✕</button>
+                </div>
+                <div id="event-list-container" style="max-height:400px;overflow-y:auto;"></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">По статусу</div>
+                <div class="status-grid" id="stats-status"></div>
+            </div>
+        </aside>
+
+        <!-- Карта -->
+        <main class="map-container">
+            <div id="map"></div>
+            <div class="view-switch">
+                <button class="view-btn active" data-mode="types">По типам</button>
+                <button class="view-btn" data-mode="years">По годам</button>
+                <button id="btn-link-mode" class="view-btn" title="Режим связи">🔗</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модалка добавления события -->
+    <div id="modal-add" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="modal-title">Новое событие</h2>
+            <div class="form-group">
+                <label>Тип</label>
+                <select id="add-type">
+                    <option value="personal">Личное</option>
+                    <option value="traffic">Пробки</option>
+                    <option value="roadwork">Ремонт</option>
+                    <option value="safety">Безопасность</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Источник</label>
+                <input type="text" id="add-source" placeholder="Например: Яндекс, Дептранс, МВД">
+            </div>
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="add-desc" placeholder="Что случилось?"></textarea>
+            </div>
+            <!-- Координаты заполняются автоматически при клике на карту -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="form-group">
+                    <label>Широта</label>
+                    <input type="text" id="add-lat" value="55.7558" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Долгота</label>
+                    <input type="text" id="add-lng" value="37.6173" readonly>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="btn-cancel">Отмена</button>
+                <button id="modal-submit" class="btn-primary">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка управления категориями -->
+    <div id="modal-categories" class="modal hidden">
+        <div class="modal-content" style="max-width:400px;">
+            <h2 class="modal-title">Категории</h2>
+            <div id="categories-list" style="max-height:300px;overflow-y:auto;margin-bottom:16px;"></div>
+            <div style="border-top:1px solid #252932;padding-top:16px;">
+                <div class="form-group">
+                    <label>Название</label>
+                    <input type="text" id="cat-new-name" placeholder="Название категории">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div class="form-group">
+                        <label>Цвет</label>
+                        <input type="color" id="cat-new-color" value="#a855f7" style="height:36px;cursor:pointer;">
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;">
+                        <button id="btn-add-category" class="btn-primary" style="width:100%;padding:8px;">Добавить</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top:16px;">
+                <button id="modal-categories-cancel" class="btn-cancel">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка управления статусами -->
+    <div id="modal-statuses" class="modal hidden">
+        <div class="modal-content" style="max-width:400px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h2 class="modal-title" style="margin:0;">Статусы</h2>
+                <button id="btn-close-statuses" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:20px;line-height:1;">✕</button>
+            </div>
+            <div id="statuses-list" style="max-height:300px;overflow-y:auto;margin-bottom:16px;"></div>
+            <div style="border-top:1px solid #252932;padding-top:16px;">
+                <div class="form-group">
+                    <label>Название</label>
+                    <input type="text" id="status-new-name" placeholder="Название статуса">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div class="form-group">
+                        <label>Цвет</label>
+                        <input type="color" id="status-new-color" value="#a855f7" style="height:36px;cursor:pointer;">
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;">
+                        <button id="btn-add-status" class="btn-primary" style="width:100%;padding:8px;">Добавить</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top:16px;">
+                <button id="modal-statuses-cancel" class="btn-cancel">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка просмотра деталей события -->
+    <div id="modal-event-detail" class="modal hidden">
+        <div class="modal-content" style="max-width:480px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h2 class="modal-title" style="margin:0;">Детали события</h2>
+                <button id="btn-close-detail" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:20px;line-height:1;">✕</button>
+            </div>
+            <div id="event-detail-content"></div>
+            <div class="modal-actions" style="margin-top:20px;">
+                <button id="btn-delete-event" class="btn-delete" style="background:#ef4444;color:#fff;border:none;padding:10px;border-radius:8px;font-size:14px;cursor:pointer;">Удалить</button>
+                <button id="btn-close-event-detail" class="btn-cancel">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <!-- Собственные скрипты (порядок важен: config -> state -> services -> components -> handlers -> app) -->
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/services/api.js"></script>
+    <script src="js/components/map.js"></script>
+    <script src="js/components/ui.js"></script>
+    <script src="js/components/eventList.js"></script>
+    <script src="js/handlers/mapLinks.js"></script>
+    <script src="js/handlers/events.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
