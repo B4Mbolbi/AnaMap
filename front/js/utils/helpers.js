@@ -3,8 +3,11 @@
  * ОБЩИЕ ФУНКЦИИ (HELPERS)
  * ==========================================
  * 
- * Переиспользуемая логика: категории, статусы,
- * конфигурация типов событий, экранирование.
+ * Переиспользуемая чистая логика:
+ * - Экранирование HTML
+ * - Категории (базовые + пользовательские)
+ * - Статусы (базовые + пользовательские)
+ * - Группировка событий
  * ==========================================
  */
 
@@ -110,4 +113,48 @@ function groupEventsByCategory() {
     });
 
     return Object.values(groups);
+}
+
+/**
+ * Получить конфигурацию типа связи
+ * @param {string} type
+ * @returns {object} {key, label, icon, color}
+ */
+function getLinkTypeConfig(type) {
+    return CONFIG.LINK_TYPES[type] || CONFIG.LINK_TYPES.coincidence;
+}
+
+/**
+ * Получить стиль линии связи по типу
+ * @param {string} type
+ * @returns {object} {color, weight, opacity, dashArray, lineCap}
+ */
+function getLinkStyle(type) {
+    const linkType = CONFIG.LINK_TYPES[type] || CONFIG.LINK_TYPES.coincidence;
+    const linkStyle = CONFIG.LINK_STYLES[type] || CONFIG.LINK_STYLES.coincidence;
+    return {
+        color: linkType.color,
+        weight: linkStyle.weight,
+        opacity: linkStyle.opacity,
+        dashArray: linkStyle.dashArray,
+        lineCap: 'round'
+    };
+}
+
+/**
+ * Получить метку статуса
+ * @param {string} status
+ * @returns {string}
+ */
+function getStatusLabel(status) {
+    return CONFIG.STATUS_LABELS[status] || status;
+}
+
+/**
+ * Получить цвет статуса
+ * @param {string} status
+ * @returns {string}
+ */
+function getStatusColor(status) {
+    return CONFIG.STATUS_COLORS[status] || CONFIG.DEFAULT_COLOR;
 }

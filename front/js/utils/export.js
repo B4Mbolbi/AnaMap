@@ -1,22 +1,42 @@
 /**
  * ==========================================
- * ЭКСПОРТ / ИМПОРТ / ВАЛИДАЦИЯ ДАННЫХ
+ * ЭКСПОРТ / ИМПОРТ / ВАЛИДАЦИЯ — КОНСОЛИДИРОВАННАЯ ВЕРСИЯ
  * ==========================================
  * 
- * Экспорт событий и связей в JSON/CSV форматах.
- * Импорт событий из JSON-файла с мерджингом.
- * Валидация структуры события.
+ * Экспорт событий и связей в JSON/CSV.
+ * Импорт из JSON с мерджингом.
+ * Валидация структуры событий.
+ * Экспорт/импорт проектов.
  * ==========================================
  */
 
 const Export = {
+    // ==========================================
+    // ЭКСПОРТ СОБЫТИЙ
+    // ==========================================
+
+    /**
+     * Экспорт событий в JSON
+     * @param {Array} events - массив событий (по умолчанию State.events)
+     */
+    exportEventsJSON(events) {
+        events = events || State.events;
+        if (!events || events.length === 0) {
+            console.warn('[Export] Нет данных для экспорта');
+            return;
+        }
+        const data = JSON.stringify(events, null, 2);
+        this.downloadFile(data, `anemap_events_${this.getDateString()}.json`, 'application/json');
+    },
+
     /**
      * Экспорт событий в CSV
      * @param {Array} events - массив событий (по умолчанию State.events)
      */
-    exportEventsCSV(events = State.events) {
+    exportEventsCSV(events) {
+        events = events || State.events;
         if (!events || events.length === 0) {
-            alert('Нет данных для экспорта');
+            console.warn('[Export] Нет данных для экспорта');
             return;
         }
 
@@ -38,11 +58,16 @@ const Export = {
         this.downloadFile(csv, `anemap_events_${this.getDateString()}.csv`, 'text/csv');
     },
 
+    // ==========================================
+    // ЭКСПОРТ СВЯЗЕЙ
+    // ==========================================
+
     /**
      * Экспорт связей в JSON
-     * @param {Array} links - массив связей (по умолчанию savedLinks)
+     * @param {Array} links - массив связей (по умолчанию State.links)
      */
-    exportLinksJSON(links = savedLinks) {
+    exportLinksJSON(links) {
+        links = links || State.links;
         const data = JSON.stringify(links, null, 2);
         this.downloadFile(data, `anemap_links_${this.getDateString()}.json`, 'application/json');
     },
@@ -51,9 +76,10 @@ const Export = {
      * Экспорт связей в CSV
      * @param {Array} links - массив связей
      */
-    exportLinksCSV(links = savedLinks) {
+    exportLinksCSV(links) {
+        links = links || State.links;
         if (!links || links.length === 0) {
-            alert('Нет связей для экспорта');
+            console.warn('[Export] Нет связей для экспорта');
             return;
         }
 
@@ -76,18 +102,22 @@ const Export = {
         this.downloadFile(csv, `anemap_links_${this.getDateString()}.csv`, 'text/csv');
     },
 
+    // ==========================================
+    // ИМПОРТ СОБЫТИЙ
+    // ==========================================
+
     /**
      * Импорт событий из JSON-файла.
      * События с существующим id заменяются, новые — добавляются.
      * @param {File} file - файл .json
-     * @returns {Promise<object>} результат импорта: { imported, updated, skipped, errors }
+     * @returns {Promise<object>} результат импорта
      */
     async importFromJSON(file) {
         try {
             const text = await this._readFileAsText(file);
             const data = JSON.parse(text);
 
-            // Support both a single array and a wrapper object { events: [...] }
+            // Поддержка массива или обёрнутого объекта
             let importedEvents = Array.isArray(data) ? data : (data.events || []);
 
             if (!Array.isArray(importedEvents) || importedEvents.length === 0) {
@@ -101,7 +131,6 @@ const Export = {
             const errors = [];
 
             for (const ev of importedEvents) {
-                // Validate each event
                 const validation = this.validateEvent(ev);
                 if (validation.errors.length > 0) {
                     skipped++;
@@ -110,23 +139,21 @@ const Export = {
                 }
 
                 if (existingIds.has(ev.id)) {
-                    // Update existing event
                     const idx = State.events.findIndex(e => e.id === ev.id);
                     if (idx !== -1) {
                         State.events[idx] = { ...State.events[idx], ...ev };
                         updated++;
                     }
                 } else {
-                    // Add new event
                     State.events.push(ev);
                     imported++;
                 }
             }
 
-            // Re-render everything after import
-            renderMap();
-            renderUI();
-            renderEventList();
+            // Перерисовка после импорта
+            if (typeof renderMap === 'function') renderMap();
+            if (typeof renderUI === 'function') renderUI();
+            if (typeof renderEventList === 'function') renderEventList();
             Storage.saveEvents();
 
             return { imported, updated, skipped, errors };
@@ -136,6 +163,10 @@ const Export = {
         }
     },
 
+    // ==========================================
+    // ВАЛИДАЦИЯ
+    // ==========================================
+
     /**
      * Валидация одного события.
      * @param {object} event - событие для проверки
@@ -144,14 +175,14 @@ const Export = {
     validateEvent(event) {
         const errors = [];
 
-        // Check required fields exist and are non-empty
+        // Обязательные поля
         for (const field of CONFIG.REQUIRED_FIELDS) {
             if (event[field] === undefined || event[field] === null || event[field] === '') {
                 errors.push(`Отсутствует обязательное поле: "${field}"`);
             }
         }
 
-        // Validate lat/lng are numbers in valid range
+        // Валидация координат
         if (event.lat !== undefined && event.lat !== null && event.lat !== '') {
             const lat = Number(event.lat);
             if (isNaN(lat) || lat < CONFIG.LAT_RANGE[0] || lat > CONFIG.LAT_RANGE[1]) {
@@ -166,27 +197,24 @@ const Export = {
             }
         }
 
-        // Validate type is a string
+        // Тип — строка
         if (event.type !== undefined && typeof event.type !== 'string') {
             errors.push(`Поле "type" должно быть строкой`);
         }
 
-        // Validate date format YYYY-MM-DD
+        // Формат даты
         if (event.date) {
             if (!CONFIG.DATE_REGEX.test(String(event.date))) {
                 errors.push(`Некорректный формат даты: "${event.date}" (ожидался YYYY-MM-DD)`);
             }
         }
 
-        return {
-            valid: errors.length === 0,
-            errors
-        };
+        return { valid: errors.length === 0, errors };
     },
 
     /**
      * Валидация всех сохранённых событий.
-     * @returns {{ valid: boolean, results: Array<{ id, title, errors: string[] }>, total: number, invalid: number }}
+     * @returns {{ valid: boolean, results: Array, total: number, invalid: number }}
      */
     validateAllEvents() {
         const results = [];
@@ -212,46 +240,9 @@ const Export = {
         };
     },
 
-    /**
-     * Скачать файл
-     * @param {string} content - содержимое файла
-     * @param {string} filename - имя файла
-     * @param {string} mimeType - MIME-тип
-     */
-    downloadFile(content, filename, mimeType) {
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    },
-
-    /**
-     * Прочитать файл как текст
-     * @param {File} file
-     * @returns {Promise<string>}
-     */
-    _readFileAsText(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsText(file);
-        });
-    },
-
-    /**
-     * Получить строку даты для имени файла
-     * @returns {string}
-     */
-    getDateString() {
-        const d = new Date();
-        return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-    },
+    // ==========================================
+    // ЭКСПОРТ/ИМПОРТ ПРОЕКТОВ
+    // ==========================================
 
     /**
      * Экспорт проекта в JSON
@@ -259,7 +250,7 @@ const Export = {
      */
     exportProjectJSON(project) {
         if (!project) {
-            alert('Нет проекта для экспорта');
+            console.warn('[Export] Нет проекта для экспорта');
             return;
         }
         const data = JSON.stringify(project, null, 2);
@@ -286,5 +277,44 @@ const Export = {
             console.error('[Export] Ошибка импорта проекта:', err);
             return { success: false, error: `Ошибка чтения файла: ${err.message}` };
         }
+    },
+
+    // ==========================================
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // ==========================================
+
+    /**
+     * Скачать файл
+     */
+    downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    },
+
+    /**
+     * Прочитать файл как текст
+     */
+    _readFileAsText(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsText(file);
+        });
+    },
+
+    /**
+     * Получить строку даты для имени файла
+     */
+    getDateString() {
+        const d = new Date();
+        return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
     }
 };
