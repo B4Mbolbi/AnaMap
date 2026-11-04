@@ -45,58 +45,141 @@
 
     <!-- Основной контент -->
     <div class="main-container">
-        <!-- Сайдбар -->
+        <!-- Сайдбар с вертикальными вкладками -->
         <aside class="sidebar">
-            <div class="panel">
-            <div class="panel-title">Фильтры</div>
-            <div class="filter-buttons" id="filter-types"></div>
-            <select id="filter-status" class="filter-status-select">
-                <option value="">Все статусы</option>
-            </select>
-            <button id="btn-clear-filters" class="btn-clear-filters">✕ Очистить все фильтры</button>
-            <button id="btn-manage-categories" style="width:100%;padding:6px;font-size:11px;border:1px dashed #2a2e38;background:transparent;color:#64748b;border-radius:8px;cursor:pointer;">+ Категория</button>
-            <button id="btn-manage-statuses" style="width:100%;padding:6px;margin-top:4px;font-size:11px;border:1px dashed #2a2e38;background:transparent;color:#64748b;border-radius:8px;cursor:pointer;">+ Статус</button>
-            <div style="margin-top:8px;display:flex;gap:4px;">
-                <button id="btn-export-json" style="flex:1;padding:6px;font-size:11px;border:1px dashed #2a2e38;background:transparent;color:#64748b;border-radius:8px;cursor:pointer;">JSON</button>
-                <button id="btn-export-csv" style="flex:1;padding:6px;font-size:11px;border:1px dashed #2a2e38;background:transparent;color:#64748b;border-radius:8px;cursor:pointer;">CSV</button>
-            </div>
-            <div style="margin-top:6px;display:flex;gap:4px;">
-                <button id="btn-import" style="flex:1;padding:6px;font-size:11px;border:1px dashed #2a2e38;background:transparent;color:#64748b;border-radius:8px;cursor:pointer;">Import</button>
-                <button id="btn-validate" style="flex:1;padding:6px;font-size:11px;border:1px dashed #2a2e38;background:transparent;color:#64748b;border-radius:8px;cursor:pointer;">Validate</button>
-            </div>
-            <!-- Скрытый input для импорта файла -->
-            <input type="file" id="file-import-json" accept=".json" style="display:none;">
-            <div style="margin-top:8px;">
-                <div style="display:flex;gap:4px;">
-                    <input type="date" id="filter-date-from" class="date-input" placeholder="С" style="flex:1;">
-                    <input type="date" id="filter-date-to" class="date-input" placeholder="По" style="flex:1;">
-                </div>
-            </div>
-            </div>
+            <!-- Вертикальные табы -->
+            <nav class="sidebar-tabs" id="sidebar-tabs">
+                <button class="sidebar-tab active" data-panel="filters" title="Фильтры">
+                    🔍<span class="tab-tooltip">Фильтры</span>
+                </button>
+                <button class="sidebar-tab" data-panel="stats" title="Статистика">
+                    📊<span class="tab-tooltip">Статистика</span>
+                </button>
+                <button class="sidebar-tab" data-panel="events" title="События">
+                    📋<span class="tab-tooltip">События</span>
+                </button>
+                <button class="sidebar-tab" data-panel="links" title="Связи">
+                    🔗<span class="tab-tooltip">Связи</span>
+                </button>
+                <button class="sidebar-tab" data-panel="projects" title="Проекты">
+                    📁<span class="tab-tooltip">Проекты</span>
+                </button>
+                <button class="sidebar-tab" data-panel="data" title="Данные">
+                    ⚙️<span class="tab-tooltip">Данные</span>
+                </button>
+            </nav>
 
-            <div class="panel">
-                <div class="panel-title">События по типам</div>
-                <div id="stats-types"></div>
-            </div>
+            <!-- Панели контента -->
+            <div class="sidebar-panels">
 
-            <!-- Мини-таймлайн: распределение событий по месяцам -->
-            <div class="panel">
-                <div class="panel-title">Распределение по времени</div>
-                <div id="timeline-container" class="timeline-container"></div>
-            </div>
+                <!-- ====== ВКЛАДКА: ФИЛЬТРЫ ====== -->
+                <section class="sidebar-panel active" data-panel="filters">
+                    <div class="panel">
+                        <div class="panel-title">Фильтры</div>
+                        <div class="filter-buttons" id="filter-types"></div>
+                        <select id="filter-status" class="filter-status-select">
+                            <option value="">Все статусы</option>
+                        </select>
+                        <button id="btn-clear-filters" class="btn-clear-filters">✕ Очистить все фильтры</button>
+                        <div style="margin-top:8px;">
+                            <div style="display:flex;gap:4px;">
+                                <input type="date" id="filter-date-from" class="date-input" placeholder="С" style="flex:1;">
+                                <input type="date" id="filter-date-to" class="date-input" placeholder="По" style="flex:1;">
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-            <!-- Список событий по категориям -->
-            <div class="panel" id="event-list-panel" style="display:none;">
-                <div class="panel-title">
-                    <span id="event-list-title">События</span>
-                    <button id="btn-close-event-list" style="float:right;background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;line-height:1;">✕</button>
-                </div>
-                <div id="event-list-container" style="max-height:400px;overflow-y:auto;"></div>
-            </div>
+                <!-- ====== ВКЛАДКА: СТАТИСТИКА ====== -->
+                <section class="sidebar-panel" data-panel="stats">
+                    <div class="panel">
+                        <div class="panel-title">События по типам</div>
+                        <div id="stats-types"></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">Распределение по времени</div>
+                        <div id="timeline-container" class="timeline-container"></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">По статусу</div>
+                        <div class="status-grid" id="stats-status"></div>
+                    </div>
+                </section>
 
-            <div class="panel">
-                <div class="panel-title">По статусу</div>
-                <div class="status-grid" id="stats-status"></div>
+                <!-- ====== ВКЛАДКА: СОБЫТИЯ ====== -->
+                <section class="sidebar-panel" data-panel="events">
+                    <div class="panel">
+                        <div style="display:flex;gap:6px;margin-bottom:12px;">
+                            <input type="text" id="event-search" placeholder="Поиск по событиям..." style="flex:1;padding:8px 12px;background:var(--bg-input);border:1px solid var(--border-default);border-radius:var(--radius-md);font-size:12px;color:var(--text-input);">
+                            <select id="event-sort" style="width:auto;padding:8px 12px;background:var(--bg-input);border:1px solid var(--border-default);border-radius:var(--radius-md);font-size:12px;color:var(--text-input);cursor:pointer;">
+                                <option value="date_desc">Дата ↓</option>
+                                <option value="date_asc">Дата ↑</option>
+                                <option value="status">По статусу</option>
+                            </select>
+                        </div>
+                        <div id="event-list-panel" style="display:none;">
+                            <div class="panel-title">
+                                <span id="event-list-title">События</span>
+                                <button id="btn-close-event-list" style="float:right;background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;line-height:1;">✕</button>
+                            </div>
+                            <div id="event-list-container"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ====== ВКЛАДКА: СВЯЗИ ====== -->
+                <section class="sidebar-panel" data-panel="links">
+                    <div class="panel">
+                        <div class="panel-title">Связи между событиями</div>
+                        <div id="links-list" style="max-height:400px;overflow-y:auto;"></div>
+                        <div style="margin-top:12px;display:flex;gap:4px;flex-wrap:wrap;">
+                            <button id="btn-export-links-json" style="flex:1;padding:6px;font-size:11px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">Экспорт JSON</button>
+                            <button id="btn-export-links-csv" style="flex:1;padding:6px;font-size:11px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">Экспорт CSV</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ====== ВКЛАДКА: ПРОЕКТЫ ====== -->
+                <section class="sidebar-panel" data-panel="projects">
+                    <div class="panel">
+                        <div class="panel-title">Проекты</div>
+                        <button id="btn-new-project" style="width:100%;padding:8px;font-size:12px;background:var(--accent-blue);color:#fff;border:none;border-radius:var(--radius-md);cursor:pointer;margin-bottom:12px;">+ Новый проект</button>
+                        <div id="projects-list" style="max-height:400px;overflow-y:auto;"></div>
+                        <div style="margin-top:12px;">
+                            <input type="file" id="file-import-project" accept=".json" style="display:none;">
+                            <button id="btn-import-project" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">Импорт проекта</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ====== ВКЛАДКА: ДАННЫЕ ====== -->
+                <section class="sidebar-panel" data-panel="data">
+                    <div class="panel">
+                        <div class="panel-title">Экспорт событий</div>
+                        <div style="display:flex;gap:4px;">
+                            <button id="btn-export-json" style="flex:1;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">JSON</button>
+                            <button id="btn-export-csv" style="flex:1;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">CSV</button>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">Импорт событий</div>
+                        <button id="btn-import" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">Import JSON</button>
+                        <input type="file" id="file-import-json" accept=".json" style="display:none;">
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">Валидация</div>
+                        <button id="btn-validate" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">Проверить данные</button>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">Категории</div>
+                        <button id="btn-manage-categories" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">+ Управление категориями</button>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">Статусы</div>
+                        <button id="btn-manage-statuses" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">+ Управление статусами</button>
+                    </div>
+                </section>
+
             </div>
         </aside>
 
@@ -281,6 +364,10 @@
     <script src="js/components/eventListRender.js"></script>
     <script src="js/components/eventListActions.js"></script>
     <script src="js/components/eventListDetail.js"></script>
+    <!-- sidebar tabs + новые панели -->
+    <script src="js/components/sidebarTabs.js"></script>
+    <script src="js/components/linksPanel.js"></script>
+    <script src="js/components/projectsPanel.js"></script>
     <!-- handlers/statuses.js ДО eventListStatuses.js (handleAddStatus вызывает updateStatusSelect) -->
     <script src="js/handlers/statuses.js"></script>
     <script src="js/components/eventListStatuses.js"></script>

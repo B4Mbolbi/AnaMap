@@ -104,3 +104,30 @@ function renderEventList() {
         btn.onmouseleave = () => btn.style.color = '#64748b';
     });
 }
+
+/**
+ * Инициализация поиска и сортировки в списке событий
+ */
+function initEventListFilters() {
+    const searchInput = document.getElementById('event-search');
+    const sortSelect = document.getElementById('event-sort');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            State.setFilterSearch(e.target.value);
+            renderEventList();
+        });
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            State.setFilterSortBy(e.target.value);
+            renderEventList();
+        });
+    }
+}
+
+// Инициализация при загрузке DOM
+document.addEventListener('DOMContentLoaded', () => {
+    initEventListFilters();
+});

@@ -48,6 +48,35 @@ const Export = {
     },
 
     /**
+     * Экспорт связей в CSV
+     * @param {Array} links - массив связей
+     */
+    exportLinksCSV(links = savedLinks) {
+        if (!links || links.length === 0) {
+            alert('Нет связей для экспорта');
+            return;
+        }
+
+        const headers = ['ID', 'From', 'To', 'FromDesc', 'ToDesc', 'FromType', 'ToType'];
+        const rows = links.map(link => {
+            const fromEvent = State.events.find(e => e.id === link.from);
+            const toEvent = State.events.find(e => e.id === link.to);
+            return [
+                link.id,
+                fromEvent?.id || '',
+                toEvent?.id || '',
+                `"${(fromEvent?.description || '').replace(/"/g, '""')}"`,
+                `"${(toEvent?.description || '').replace(/"/g, '""')}"`,
+                fromEvent?.type || '',
+                toEvent?.type || ''
+            ];
+        });
+
+        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        this.downloadFile(csv, `anemap_links_${this.getDateString()}.csv`, 'text/csv');
+    },
+
+    /**
      * Импорт событий из JSON-файла.
      * События с существующим id заменяются, новые — добавляются.
      * @param {File} file - файл .json
@@ -222,5 +251,40 @@ const Export = {
     getDateString() {
         const d = new Date();
         return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    },
+
+    /**
+     * Экспорт проекта в JSON
+     * @param {object} project - объект проекта
+     */
+    exportProjectJSON(project) {
+        if (!project) {
+            alert('Нет проекта для экспорта');
+            return;
+        }
+        const data = JSON.stringify(project, null, 2);
+        const filename = `anemap_project_${project.name}_${this.getDateString()}.json`;
+        this.downloadFile(data, filename, 'application/json');
+    },
+
+    /**
+     * Импорт проекта из JSON-файла
+     * @param {File} file - файл .json
+     * @returns {Promise<object>} результат импорта
+     */
+    async importProjectJSON(file) {
+        try {
+            const text = await this._readFileAsText(file);
+            const data = JSON.parse(text);
+
+            if (!data.name || !Array.isArray(data.events)) {
+                return { success: false, error: 'Некорректный формат файла проекта' };
+            }
+
+            return { success: true, data };
+        } catch (err) {
+            console.error('[Export] Ошибка импорта проекта:', err);
+            return { success: false, error: `Ошибка чтения файла: ${err.message}` };
+        }
     }
 };

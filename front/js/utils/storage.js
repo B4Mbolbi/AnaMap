@@ -88,5 +88,37 @@ const Storage = {
         } catch (error) {
             console.error('[Storage] Ошибка сохранения событий:', error);
         }
+    },
+
+    // --- Проекты ---
+
+    loadProjects() {
+        try {
+            const data = localStorage.getItem('anemap_projects');
+            return data ? JSON.parse(data) : [];
+        } catch (error) {
+            console.error('[Storage] Ошибка загрузки проектов:', error);
+            return [];
+        }
+    },
+
+    saveProjects(projects) {
+        try {
+            localStorage.setItem('anemap_projects', JSON.stringify(projects));
+        } catch (error) {
+            console.error('[Storage] Ошибка сохранения проектов:', error);
+        }
+    },
+
+    getActiveProjectId() {
+        return localStorage.getItem('anemap_active_project');
+    },
+
+    setActiveProjectId(projectId) {
+        if (projectId) {
+            localStorage.setItem('anemap_active_project', projectId);
+        } else {
+            localStorage.removeItem('anemap_active_project');
+        }
     }
 };
