@@ -3,137 +3,172 @@
  * КОНФИГУРАЦИЯ ПРИЛОЖЕНИЯ
  * ==========================================
  * 
- * Все настройки API и константы приложения
- * находятся в этом файле для удобного управления.
- * 
- * Для подключения к реальному API:
- * 1. Установите API_ENABLED = true
- * 2. Укажите BASE_URL вашего сервера
- * 3. Настройте эндпоинты при необходимости
+ * Все настройки API, константы, цвета, диапазоны,
+ * параметры карты и формы — в одном месте.
  * ==========================================
  */
 
 const CONFIG = {
-    // Включение/выключения режима API
-    // false = использовать тестовые данные (mock),
-    // true = отправлять запросы к серверу
-    API_ENABLED: false,
-
-    // Базовый URL API-сервера
-    // Замените на адрес вашего бэкенда
+    // ==========================================
+    // API
+    // ==========================================
+    API_ENABLED: true,
     BASE_URL: 'http://localhost:3000/api',
-
-    // Таймаут запросов в миллисекундах
     REQUEST_TIMEOUT: 10000,
 
-    // Эндпоинты API
     ENDPOINTS: {
-        EVENTS:    '/events',     // GET /events  — получить все события
-        ADD_EVENT: '/events',     // POST /events — добавить событие
-        CATEGORIES: '/categories', // POST /categories — сохранить категории
+        EVENTS: '/events',
+        ADD_EVENT: '/events',
+        CATEGORIES: '/categories',
+        DELETE_EVENT: '/events',
+        DELETE_CATEGORY: '/categories',
+        STATUSES: '/statuses',
     },
 
-    // Ключи для хранения в localStorage
+    // ==========================================
+    // LOCAL STORAGE KEYS
+    // ==========================================
+    EVENTS_KEY: 'anemap_events',
     CUSTOM_CATEGORIES_KEY: 'custom_event_categories',
     CUSTOM_STATUSES_KEY: 'custom_event_statuses',
+    LINKS_KEY: 'event_links',
 
-    // Набор цветов для пользовательских категорий
+    // ==========================================
+    // ЦВЕТА ДЛЯ ПОЛЬЗОВАТЕЛЬСКИХ КАТЕГОРИЙ
+    // ==========================================
     CUSTOM_COLORS: [
-        '#a855f7', // фиолетовый
-        '#ec4899', // розовый
-        '#14b8a6', // бирюзовый
-        '#f59e0b', // янтарный
-        '#6366f1', // индиго
-        '#8b5cf6', // сирень
-        '#06b6d4', // голубой
-        '#84cc16', // лайм
-        '#f43f5e', // малиновый
-        '#78716c', // камень
+        '#a855f7', '#ec4899', '#14b8a6', '#f59e0b',
+        '#6366f1', '#8b5cf6', '#06b6d4', '#84cc16',
+        '#f43f5e', '#78716c',
     ],
 
-    // Конфигурация слоёв карты (базовые типы событий)
+    // ==========================================
+    // БАЗОВЫЕ ТИПЫ СОБЫТИЙ
+    // ==========================================
     BASE_LAYERS: {
-        personal:  { label: 'Личное',  color: '#3b82f6' },
-        traffic:   { label: 'Пробки',  color: '#f97316' },
-        roadwork:  { label: 'Ремонт',  color: '#22c55e' },
-        safety:    { label: 'Безопасность', color: '#ef4444' }
+        personal:   { label: 'Личное', color: '#3b82f6' },
+        traffic:    { label: 'Пробки', color: '#f97316' },
+        roadwork:   { label: 'Ремонт', color: '#22c55e' },
+        safety:     { label: 'Безопасность', color: '#ef4444' }
     },
 
-    // Метки статусов
+    // ==========================================
+    // СТАТУСЫ
+    // ==========================================
     STATUS_LABELS: {
         planned:     'Запланировано',
         in_progress: 'В процессе',
         completed:   'Завершено'
     },
-
-    // Цвета статусов для статистики
     STATUS_COLORS: {
         planned:     '#fbbf24',
         in_progress: '#60a5fa',
         completed:   '#34d399'
     },
 
-    // Начальные координаты карты и зум
+    // ==========================================
+    // КАРТА
+    // ==========================================
     MAP: {
-        center: [55.7558, 37.624],
-        zoom: 12
+        center: [52.991231, 158.672104],
+        zoom: 12,
+        TILE_URL: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        MAX_ZOOM: 19,
+        INVALIDATE_DELAY: 100
+    },
+    CLUSTER_MAX_RADIUS: 55,
+    LABEL_ZOOM_THRESHOLD: 14,
+
+    // Размеры кластеров
+    CLUSTER_SIZES: {
+        DEFAULT: 60,
+        OVER_5: 68,
+        OVER_10: 76
     },
 
-    // Максимальный радиус кластера
-    CLUSTER_MAX_RADIUS: 55,
+    // ==========================================
+    // ТЕПЛОВАЯ КАРТА
+    // ==========================================
+    HEAT_LAYER: {
+        radius: 25,
+        blur: 15
+    },
 
-    // Задержка пересчета размера карты (мс)
-    MAP_INVALIDATE_DELAY: 100
+    // ==========================================
+    // СВЯЗИ МЕЖДУ МАРКЕРАМИ
+    // ==========================================
+    LINK: {
+        COLOR: '#3b82f6',
+        WEIGHT: 2,
+        OPACITY: 0.6,
+        DASH_ARRAY: '8, 6'
+    },
+
+    // ==========================================
+    // МАРКЕРЫ
+    // ==========================================
+    MARKER: {
+        EVENT_SIZE: [14, 14],
+        EVENT_ANCHOR: [7, 7],
+        PICK_SIZE: [16, 16],
+        PICK_ANCHOR: [8, 8],
+        PICK_COLOR: '#3b82f6'
+    },
+
+    // ==========================================
+    // КЛАСТЕРЫ ПО ГОДАМ
+    // ==========================================
+    YEAR_CLUSTER: {
+        SIZE: 50,
+        COLOR_FROM: '#6366f1',
+        COLOR_TO: '#8b5cf6'
+    },
+
+    // ==========================================
+    // ФОРМА ДОБАВЛЕНИЯ — ЗНАЧЕНИЯ ПО УМОЛЧАНИЮ
+    // ==========================================
+    DEFAULT_COORDS: {
+        LAT: 55.7558,
+        LNG: 37.6173
+    },
+    DEFAULT_TYPE: 'personal',
+    DEFAULT_STATUS: 'planned',
+
+    // ==========================================
+    // ВАЛИДАЦИЯ ФОРМЫ
+    // ==========================================
+    MAX_TAGS: 10,
+    MAX_SOURCE_LENGTH: 100,
+    MIN_DESC_LENGTH: 5,
+
+    // ==========================================
+    // ВАЛИДАЦИЯ ДАННЫХ
+    // ==========================================
+    REQUIRED_FIELDS: ['id', 'description', 'lat', 'lng', 'type', 'status', 'date'],
+    LAT_RANGE: [-90, 90],
+    LNG_RANGE: [-180, 180],
+    DATE_REGEX: /^\d{4}-\d{2}-\d{2}$/,
+
+    // ==========================================
+    // CSV ЭКСПОРТ
+    // ==========================================
+    CSV_HEADERS: ['ID', 'Тип', 'Статус', 'Дата', 'Описание', 'Источник', 'Район', 'Широта', 'Долгота', 'Теги'],
+
+    // ==========================================
+    // ТАЙМЛАЙН
+    // ==========================================
+    MONTH_NAMES: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+    TIMELINE_MONTHS: 12,
+
+    // ==========================================
+    // ТЕГИ
+    // ==========================================
+    TAG_KEY: 'Enter',
+    CUSTOM_PREFIX: 'custom_',
+
+    // ==========================================
+    // ЦВЕТА ПО УМОЛЧАНИЮ
+    // ==========================================
+    DEFAULT_COLOR: '#64748b',
+    DEFAULT_BAR_COLOR: '#3b82f6'
 };
-
-/**
- * Загрузка пользовательских категорий из localStorage
- * @returns {Array} массив пользовательских категорий
- */
-function loadCustomCategories() {
-    try {
-        const data = localStorage.getItem(CONFIG.CUSTOM_CATEGORIES_KEY);
-        return data ? JSON.parse(data) : [];
-    } catch (error) {
-        console.error('Ошибка загрузки категорий:', error);
-        return [];
-    }
-}
-
-/**
- * Сохранение пользовательских категорий в localStorage
- * @param {Array} categories - массив категорий
- */
-function saveCustomCategories(categories) {
-    try {
-        localStorage.setItem(CONFIG.CUSTOM_CATEGORIES_KEY, JSON.stringify(categories));
-    } catch (error) {
-        console.error('Ошибка сохранения категорий:', error);
-    }
-}
-
-/**
- * Загрузка пользовательских статусов из localStorage
- * @returns {Array} массив пользовательских статусов
- */
-function loadCustomStatuses() {
-    try {
-        const data = localStorage.getItem(CONFIG.CUSTOM_STATUSES_KEY);
-        return data ? JSON.parse(data) : [];
-    } catch (error) {
-        console.error('Ошибка загрузки статусов:', error);
-        return [];
-    }
-}
-
-/**
- * Сохранение пользовательских статусов в localStorage
- * @param {Array} statuses - массив статусов
- */
-function saveCustomStatuses(statuses) {
-    try {
-        localStorage.setItem(CONFIG.CUSTOM_STATUSES_KEY, JSON.stringify(statuses));
-    } catch (error) {
-        console.error('Ошибка сохранения статусов:', error);
-    }
-}

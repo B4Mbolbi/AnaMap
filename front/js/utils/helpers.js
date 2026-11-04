@@ -1,0 +1,113 @@
+/**
+ * ==========================================
+ * ОБЩИЕ ФУНКЦИИ (HELPERS)
+ * ==========================================
+ * 
+ * Переиспользуемая логика: категории, статусы,
+ * конфигурация типов событий, экранирование.
+ * ==========================================
+ */
+
+/**
+ * Экранирование HTML-сущностей
+ */
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+/**
+ * Получить все категории (базовые + пользовательские)
+ * @returns {Array} массив {key, label, color, isBase}
+ */
+function getAllCategories() {
+    const custom = Storage.loadCategories();
+    const baseKeys = Object.keys(CONFIG.BASE_LAYERS);
+
+    const baseCategories = baseKeys.map(key => ({
+        key,
+        label: CONFIG.BASE_LAYERS[key].label,
+        color: CONFIG.BASE_LAYERS[key].color,
+        isBase: true
+    }));
+
+    const customCategories = custom.map((c, i) => ({
+        ...c,
+        isBase: false,
+        index: baseKeys.length + i
+    }));
+
+    return [...baseCategories, ...customCategories];
+}
+
+/**
+ * Получить конфигурацию категории по ключу
+ * @param {string} type - ключ категории
+ * @returns {object} {label, color}
+ */
+function getCategoryConfig(type) {
+    if (CONFIG.BASE_LAYERS[type]) {
+        return CONFIG.BASE_LAYERS[type];
+    }
+    const custom = Storage.loadCategories();
+    const found = custom.find(c => c.key === type);
+    if (found) {
+        return { label: found.label, color: found.color };
+    }
+    return { label: type, color: CONFIG.DEFAULT_COLOR };
+}
+
+/**
+ * Получить все статусы (базовые + пользовательские)
+ * @returns {Array} массив {key, label, color, isBase}
+ */
+function getAllStatuses() {
+    const baseStatuses = Object.keys(CONFIG.STATUS_LABELS).map(key => ({
+        key,
+        label: CONFIG.STATUS_LABELS[key],
+        color: CONFIG.STATUS_COLORS[key],
+        isBase: true
+    }));
+
+    const customStatuses = Storage.loadStatuses().map((s, i) => ({
+        ...s,
+        isBase: false,
+        index: Object.keys(CONFIG.STATUS_LABELS).length + i
+    }));
+
+    return [...baseStatuses, ...customStatuses];
+}
+
+/**
+ * Получить конфигурацию категории для события
+ * @param {string} type - ключ типа
+ * @returns {object} {label, color}
+ */
+function getEventCategoryConfig(type) {
+    return getCategoryConfig(type);
+}
+
+/**
+ * Сгруппировать события по типам
+ * @returns {Array} массив {key, label, color, events}
+ */
+function groupEventsByCategory() {
+    const filtered = State.getFilteredEvents();
+    const groups = {};
+
+    filtered.forEach(ev => {
+        if (!groups[ev.type]) {
+            const cfg = getEventCategoryConfig(ev.type);
+            groups[ev.type] = {
+                key: ev.type,
+                label: cfg.label,
+                color: cfg.color,
+                events: []
+            };
+        }
+        groups[ev.type].events.push(ev);
+    });
+
+    return Object.values(groups);
+}

@@ -16,8 +16,11 @@ const State = {
     filters: {
         // Набор активных типов событий
         types: new Set(['personal', 'traffic', 'roadwork', 'safety']),
+        // Фильтр по статусу (пусто = все статусы)
+        status: '',
         // Фильтр по дате (формат: YYYY-MM-DD)
-        dateFrom: ''
+        dateFrom: '',
+        dateTo: ''
     },
 
     /** Текущий режим отображения ('types' | 'years') */
@@ -30,7 +33,9 @@ const State = {
     getFilteredEvents() {
         return this.events.filter(e => {
             if (!this.filters.types.has(e.type)) return false;
+            if (this.filters.status && e.status !== this.filters.status) return false;
             if (this.filters.dateFrom && e.date < this.filters.dateFrom) return false;
+            if (this.filters.dateTo && e.date > this.filters.dateTo) return false;
             return true;
         });
     },
@@ -49,6 +54,14 @@ const State = {
      */
     setFilterDateFrom(date) {
         this.filters.dateFrom = date;
+    },
+
+    /**
+     * Установить верхнюю границу фильтра по дате
+     * @param {string} date - дата в формате YYYY-MM-DD
+     */
+    setFilterDateTo(date) {
+        this.filters.dateTo = date;
     },
 
     /**
