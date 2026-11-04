@@ -10,9 +10,9 @@
  * ==========================================
  */
 
-let _highlightedLines = [];
-let _highlightedMarkers = [];
-let _currentHighlightEventId = null;
+var _highlightedLines = [];
+var _highlightedMarkers = [];
+var _currentHighlightEventId = null;
 
 /**
  * Подсветить связи события на карте и в сайдбаре

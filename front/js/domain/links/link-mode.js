@@ -10,9 +10,9 @@
  * ==========================================
  */
 
-let linkMode = false;
-let linkSelection = []; // [{marker, data}]
-let linkLines = []; // L.polyline[]
+var linkMode = false;
+var linkSelection = []; // [{marker, data}]
+var linkLines = []; // L.polyline[]
 
 /**
  * Войти в режим связи

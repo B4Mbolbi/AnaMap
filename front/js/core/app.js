@@ -9,7 +9,7 @@
  */
 
 /** Кэш связей — всегда ссылается на State.links */
-let savedLinks = [];
+var savedLinks = [];
 
 /**
  * Загрузить сохранённые связи из Storage
@@ -76,7 +76,7 @@ const App = {
 
         // 5. Привязка обработчиков событий
         initEventHandlers();
-        initEventListHandlers();
+        initEventListFilters();
         initLinkHandlers();
 
         // 6. Обновление списка типов в селекте (с учетом пользовательских категорий)

@@ -8,4 +8,4 @@
  * ==========================================
  */
 
-let currentDetailEventId = null;
+var currentDetailEventId = null;

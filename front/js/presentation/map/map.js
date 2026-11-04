@@ -11,11 +11,11 @@
  */
 
 // --- Глобальные слои карты ---
-let map;
-let markersLayer;
-let linksLayer;
-let heatLayer;
-let heatVisible = false;
+var map;
+var markersLayer;
+var linksLayer;
+var heatLayer;
+var heatVisible = false;
 
 // --- Маппинг eventId -> marker (для поиска маркера по ID события) ---
-const _eventMarkers = {};
+var _eventMarkers = {};

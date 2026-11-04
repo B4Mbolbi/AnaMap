@@ -9,8 +9,8 @@
  */
 
 // --- Состояние режима выбора координат с карты ---
-let mapPickMode = false;
-let mapPickMarker = null;
+var mapPickMode = false;
+var mapPickMarker = null;
 
 /**
  * Переключение режима выбора координат с карты
