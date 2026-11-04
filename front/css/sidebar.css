@@ -1,0 +1,253 @@
+/* ==========================================
+   ТАЙМЛАЙН
+   ========================================== */
+.timeline-container {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-default);
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.timeline-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+}
+
+.timeline-total {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.timeline-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.timeline-month-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    width: 36px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.timeline-bar-track {
+    flex: 1;
+    height: 16px;
+    background: var(--bg-body);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+}
+
+.timeline-bar-fill {
+    height: 100%;
+    border-radius: var(--radius-sm);
+    transition: width 0.4s ease;
+    min-width: 2px;
+    position: relative;
+}
+
+.timeline-bar-fill::after {
+    content: attr(data-count);
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 9px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: var(--shadow-sm);
+}
+
+.timeline-bar-fill.empty {
+    opacity: 0;
+}
+
+.timeline-bar-fill.empty::after {
+    content: '0';
+    position: absolute;
+    left: 6px;
+    right: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    text-shadow: none;
+}
+
+/* ==========================================
+   СТАТИСТИКА ПО ТИПАМ
+   ========================================== */
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 4px 0;
+}
+
+.stat-row:last-child {
+    margin-bottom: 0;
+}
+
+.stat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.stat-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-bar-bg {
+    height: 4px;
+    background: var(--bg-body);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.stat-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width var(--transition-slow);
+}
+
+/* ==========================================
+   СТАТИСТИКА ПО СТАТУСАМ
+   ========================================== */
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.status-card {
+    text-align: center;
+    padding: 12px 8px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition);
+}
+
+.status-card:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-hover);
+    transform: translateY(-1px);
+}
+
+.status-num {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.status-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* ==========================================
+   ФИЛЬТРЫ
+   ========================================== */
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    border: 1px solid var(--border-hover);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.filter-btn.active {
+    color: #fff;
+}
+
+.filter-delete:hover {
+    color: var(--accent-red) !important;
+    opacity: 1 !important;
+}
+
+.filter-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-full);
+}
+
+/* ==========================================
+   ДАТА
+   ========================================== */
+.date-input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--text-input);
+    margin-bottom: 12px;
+    transition: border-color var(--transition);
+    cursor: pointer;
+}
+
+.date-input:hover {
+    border-color: var(--border-active);
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity var(--transition);
+}
+
+.date-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}

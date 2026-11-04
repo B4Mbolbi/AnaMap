@@ -1,0 +1,113 @@
+/* ==========================================
+   LEAFLET КАСТОМИЗАЦИЯ
+   ========================================== */
+.leaflet-container {
+    background: var(--bg-map) !important;
+    font-family: inherit !important;
+}
+
+.leaflet-control-zoom a {
+    background: var(--border-subtle) !important;
+    color: var(--text-secondary) !important;
+    border-color: var(--border-hover) !important;
+}
+
+.leaflet-popup-content-wrapper {
+    background: #15181f !important;
+    color: var(--text-primary) !important;
+    border-radius: var(--radius-lg) !important;
+    border: 1px solid var(--border-hover) !important;
+}
+
+.leaflet-popup-tip {
+    background: #15181f !important;
+}
+
+/* --- Кластеры --- */
+.cluster-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--text-dim);
+    font-weight: 700;
+    color: #fff;
+    background: rgba(28, 31, 39, 0.85);
+    backdrop-filter: blur(6px);
+    font-size: 13px;
+}
+
+/* --- Маркеры событий --- */
+.event-marker-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radius-full);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 0 8px currentColor;
+    transform: scale(0);
+    opacity: 0;
+    animation: marker-pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* --- Marker pop-in animation --- */
+@keyframes marker-pop-in {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    60% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* --- Marker pulse/glow --- */
+@keyframes marker-pulse-glow {
+    0% {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 0 8px currentColor, 0 0 0 0 currentColor;
+    }
+    50% {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 0 12px currentColor, 0 0 0 6px color-mix(in srgb, currentColor 30%, transparent);
+    }
+    100% {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 0 8px currentColor, 0 0 0 0 currentColor;
+    }
+}
+
+.event-marker-dot.pulse-active {
+    animation: marker-pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               marker-pulse-glow 1.2s ease-out 0.3s 1;
+}
+
+.event-marker-label {
+    font-family: system-ui, -apple-system, sans-serif;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ==========================================
+   ЛЕЙБЛЫ НА КАРТЕ (TOOLTIP)
+   ========================================== */
+.event-tooltip {
+    background: rgba(13, 15, 20, 0.9) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-default) !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 2px 8px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    white-space: nowrap !important;
+    max-width: 150px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    box-shadow: var(--shadow-md) !important;
+    line-height: 1.4 !important;
+}
+
+.event-tooltip::before {
+    content: none !important;
+}

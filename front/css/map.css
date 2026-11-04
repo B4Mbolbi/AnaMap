@@ -1,0 +1,87 @@
+/* ==========================================
+   КАРТА
+   ========================================== */
+.map-container {
+    flex: 1;
+    position: relative;
+    background: var(--bg-map);
+}
+
+#map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Переключатель режимов */
+.view-switch {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 10;
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(19, 21, 28, 0.95);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(8px);
+}
+
+.view-btn {
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    font-size: 11px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.view-btn.active {
+    background: var(--border-hover);
+    color: var(--text-primary);
+}
+
+/* ==========================================
+   КЛАСТЕРЫ ПО ГОДАМ
+   ========================================== */
+.year-cluster {
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.year-cluster:hover {
+    transform: scale(1.1);
+}
+
+/* ==========================================
+   СВЯЗИ МЕЖДУ МАРКЕРАМИ
+   ========================================== */
+.btn-remove-link {
+    margin-top: 8px;
+    padding: 4px 8px;
+    background: var(--accent-red);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.btn-remove-link:hover {
+    background: var(--accent-red-hover);
+}
+
+/* ==========================================
+   ПОДСВЕТКА МАРКЕРОВ В РЕЖИМЕ СВЯЗИ
+   ========================================== */
+.event-marker-dot.link-selected {
+    transform: scale(1.5);
+    box-shadow: 0 0 12px 4px rgba(59, 130, 246, 0.6);
+    transition: transform var(--transition), box-shadow var(--transition);
+}

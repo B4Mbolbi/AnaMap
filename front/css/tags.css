@@ -1,0 +1,89 @@
+/* ==========================================
+   СИСТЕМА ТЕГОВ
+   ========================================== */
+.tag-input-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    min-height: 38px;
+    transition: border-color var(--transition);
+}
+
+.tag-input-wrapper:focus-within {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-blue) 15%, transparent);
+}
+
+.tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: var(--bg-tag);
+    color: var(--text-secondary);
+    border-radius: var(--radius-md);
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid var(--border-hover);
+    transition: all var(--transition-fast);
+}
+
+.tag-chip:hover {
+    background: var(--border-hover);
+    border-color: var(--border-active);
+}
+
+.tag-chip .tag-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radius-full);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    line-height: 1;
+    padding: 0;
+}
+
+.tag-chip .tag-remove:hover {
+    background: color-mix(in srgb, var(--accent-red) 20%, transparent);
+    color: var(--accent-red);
+}
+
+#add-tags {
+    border: none !important;
+    background: transparent !important;
+    padding: 4px 6px !important;
+    font-size: 13px !important;
+    color: var(--text-input);
+    flex: 1;
+    min-width: 100px;
+    box-shadow: none !important;
+}
+
+#add-tags::placeholder {
+    color: var(--text-dim);
+}
+
+#add-tags:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}

@@ -1,0 +1,145 @@
+/* ==========================================
+   УПРАВЛЕНИЕ КАТЕГОРИЯМИ
+   ========================================== */
+.category-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-default);
+}
+
+.category-item.base {
+    opacity: 0.7;
+}
+
+.category-color-preview {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--border-hover);
+    flex-shrink: 0;
+}
+
+.category-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.category-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.category-badge {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.category-delete {
+    padding: 4px 8px;
+    background: transparent;
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.category-delete:hover {
+    background: color-mix(in srgb, var(--accent-red) 20%, transparent);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+/* ==========================================
+   СПИСОК СОБЫТИЙ
+   ========================================== */
+.event-list-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    background: var(--bg-input);
+    border: 1px solid var(--border-default);
+    margin-bottom: 6px;
+    transition: all var(--transition);
+}
+
+.event-list-item:hover {
+    border-color: var(--border-active);
+    background: var(--bg-hover);
+}
+
+.event-list-main {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.event-list-status {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.event-list-desc {
+    font-size: 12px;
+    color: var(--text-input);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+}
+
+.event-list-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 4px;
+}
+
+.event-list-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.event-list-actions button {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-hover);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.event-list-actions .btn-view-detail:hover {
+    background: var(--border-hover);
+    color: var(--text-primary);
+}
+
+.event-list-actions .btn-delete-event:hover {
+    background: color-mix(in srgb, var(--accent-red) 20%, transparent);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}

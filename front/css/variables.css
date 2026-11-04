@@ -1,0 +1,59 @@
+/* ==========================================
+   CSS ПЕРЕМЕННЫЕ (DESIGN TOKENS)
+   ========================================== */
+:root {
+    /* --- Фоны --- */
+    --bg-body:       #0a0b0e;
+    --bg-surface:    #0d0f14;
+    --bg-card:       #13151c;
+    --bg-input:      #0a0b0e;
+    --bg-map:        #0f1116;
+    --bg-tag:        #1e293b;
+    --bg-hover:      #13151c;
+    --bg-overlay:    rgba(0, 0, 0, 0.6);
+
+    /* --- Границы --- */
+    --border-subtle: #1c1f27;
+    --border-default:#252932;
+    --border-hover:  #2a2e38;
+    --border-active: #3a3f4b;
+
+    /* --- Текст --- */
+    --text-primary:  #e2e8f0;
+    --text-secondary:#94a3b8;
+    --text-muted:    #64748b;
+    --text-dim:      #475569;
+    --text-input:    #cbd5e1;
+
+    /* --- Акценты --- */
+    --accent-blue:   #3b82f6;
+    --accent-green:  #4ade80;
+    --accent-red:    #ef4444;
+    --accent-red-hover: #dc2626;
+
+    /* --- Тени --- */
+    --shadow-sm:     0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md:     0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg:     0 4px 12px rgba(99, 102, 241, 0.4);
+
+    /* --- Скроллбар --- */
+    --scrollbar-bg:  transparent;
+    --scrollbar-thumb:#2a2e38;
+    --scrollbar-thumb-hover:#3a3f4b;
+
+    /* --- Радиусы --- */
+    --radius-sm:     4px;
+    --radius-md:     8px;
+    --radius-lg:     12px;
+    --radius-xl:     16px;
+    --radius-full:   50%;
+
+    /* --- Размеры --- */
+    --header-height: 56px;
+    --sidebar-width: 450px;
+
+    /* --- Переходы --- */
+    --transition-fast: 0.15s;
+    --transition:      0.2s;
+    --transition-slow: 0.3s;
+}

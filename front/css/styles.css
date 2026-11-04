@@ -131,6 +131,11 @@ header {
     border: 1px solid #252932;
     border-radius: 12px;
     padding: 16px;
+    transition: border-color 0.2s;
+}
+
+.panel:hover {
+    border-color: #2a2e38;
 }
 
 .panel-title {
@@ -140,13 +145,155 @@ header {
     letter-spacing: 0.05em;
     color: #64748b;
     margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #1c1f27;
 }
 
 .filter-buttons {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+}
+
+/* --- Status filter dropdown --- */
+.filter-status-select {
+    width: 100%;
+    padding: 8px 12px;
+    background: #0a0b0e;
+    border: 1px solid #252932;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color 0.2s;
+}
+
+.filter-status-select:hover {
+    border-color: #3a3f4b;
+}
+
+.filter-status-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.filter-status-select option {
+    background: #13151c;
+    color: #cbd5e1;
+    padding: 8px;
+}
+
+/* --- Clear all filters button --- */
+.btn-clear-filters {
+    width: 100%;
+    padding: 7px 12px;
+    background: transparent;
+    border: 1px dashed #2a2e38;
+    border-radius: 8px;
+    font-size: 11px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+}
+
+.btn-clear-filters:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: #ef444411;
+}
+
+/* --- Timeline bar chart --- */
+.timeline-container {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #252932;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.timeline-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+}
+
+.timeline-total {
+    font-size: 10px;
+    color: #64748b;
+}
+
+.timeline-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.timeline-month-label {
+    font-size: 10px;
+    color: #64748b;
+    width: 36px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.timeline-bar-track {
+    flex: 1;
+    height: 16px;
+    background: #0a0b0e;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.timeline-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    min-width: 2px;
+    position: relative;
+}
+
+.timeline-bar-fill::after {
+    content: attr(data-count);
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 9px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.timeline-bar-fill.empty {
+    opacity: 0;
+}
+
+.timeline-bar-fill.empty::after {
+    content: '0';
+    position: absolute;
+    left: 6px;
+    right: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #475569;
+    text-shadow: none;
 }
 
 .filter-btn {
@@ -214,7 +361,12 @@ header {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    padding: 4px 0;
+}
+
+.stat-row:last-child {
+    margin-bottom: 0;
 }
 
 .stat-dot {
@@ -222,6 +374,7 @@ header {
     height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
 }
 
 .stat-info {
@@ -231,17 +384,21 @@ header {
 .stat-label-row {
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
     margin-bottom: 4px;
 }
 
 .stat-label {
     font-size: 12px;
     color: #94a3b8;
+    font-weight: 500;
 }
 
 .stat-count {
     font-size: 11px;
     color: #64748b;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
 .stat-bar-bg {
@@ -265,20 +422,32 @@ header {
 
 .status-card {
     text-align: center;
-    padding: 8px;
+    padding: 12px 8px;
     background: #0a0b0e;
-    border-radius: 8px;
+    border: 1px solid #1c1f27;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.status-card:hover {
+    border-color: #2a2e38;
+    background: #13151c;
+    transform: translateY(-1px);
 }
 
 .status-num {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
 }
 
 .status-label {
     font-size: 9px;
     color: #64748b;
-    margin-top: 2px;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 /* ==========================================
@@ -396,6 +565,42 @@ header {
     border-radius: 50%;
     border: 2px solid #fff;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 0 8px currentColor;
+    transform: scale(0);
+    opacity: 0;
+    animation: marker-pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* --- Marker pop-in animation (scale + fade) --- */
+@keyframes marker-pop-in {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    60% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* --- Marker pulse/glow on first appearance --- */
+@keyframes marker-pulse-glow {
+    0% {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 0 8px currentColor, 0 0 0 0 currentColor;
+    }
+    50% {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 0 12px currentColor, 0 0 0 6px color-mix(in srgb, currentColor 30%, transparent);
+    }
+    100% {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 0 8px currentColor, 0 0 0 0 currentColor;
+    }
+}
+
+.event-marker-dot.pulse-active {
+    animation: marker-pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               marker-pulse-glow 1.2s ease-out 0.3s 1;
 }
 
 .event-marker-label {
@@ -504,6 +709,167 @@ header {
     font-weight: 500;
     cursor: pointer;
     border: none;
+}
+
+/* ==========================================
+    ВАЛИДАЦИЯ ФОРМЫ
+    ========================================== */
+.field-error {
+    font-size: 11px;
+    color: #ef4444;
+    margin-top: 4px;
+    min-height: 14px;
+    transition: opacity 0.2s;
+}
+
+.form-group.has-error input,
+.form-group.has-error select,
+.form-group.has-error textarea {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.form-group.has-error label {
+    color: #ef4444;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+/* ==========================================
+    СИСТЕМА ТЕГОВ
+    ========================================== */
+.tag-input-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    background: #0a0b0e;
+    border: 1px solid #252932;
+    border-radius: 8px;
+    min-height: 38px;
+    transition: border-color 0.2s;
+}
+
+.tag-input-wrapper:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: #1e293b;
+    color: #94a3b8;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid #2a2e38;
+    transition: all 0.15s;
+}
+
+.tag-chip:hover {
+    background: #252932;
+    border-color: #3a3f4b;
+}
+
+.tag-chip .tag-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1;
+    padding: 0;
+}
+
+.tag-chip .tag-remove:hover {
+    background: #ef444433;
+    color: #ef4444;
+}
+
+#add-tags {
+    border: none !important;
+    background: transparent !important;
+    padding: 4px 6px !important;
+    font-size: 13px !important;
+    color: #cbd5e1;
+    flex: 1;
+    min-width: 100px;
+    box-shadow: none !important;
+}
+
+#add-tags::placeholder {
+    color: #475569;
+}
+
+#add-tags:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ==========================================
+    КНОПКА "ВЫБРАТЬ НА КАРТЕ"
+    ========================================== */
+.btn-pick-map {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 12px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px dashed #3a3f4b;
+    background: transparent;
+    color: #94a3b8;
+    transition: all 0.2s;
+}
+
+.btn-pick-map:hover {
+    border-color: #3b82f6;
+    color: #e2e8f0;
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.btn-pick-map.active {
+    border-color: #3b82f6;
+    border-style: solid;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    animation: pulse-border 1.5s infinite;
+}
+
+@keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3); }
+    50% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0); }
 }
 
 .btn-cancel {
@@ -691,4 +1057,25 @@ header {
 * {
     scrollbar-width: thin;
     scrollbar-color: #2a2e38 transparent;
+}
+
+/* ==========================================
+   КЛАСТЕРЫ ПО ГОДАМ
+   ========================================== */
+.year-cluster {
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.year-cluster:hover {
+    transform: scale(1.1);
+}
+
+/* ==========================================
+   ПОДСВЕТКА МАРКЕРОВ В РЕЖИМЕ СВЯЗИ
+   ========================================== */
+.event-marker-dot.link-selected {
+    transform: scale(1.5);
+    box-shadow: 0 0 12px 4px rgba(59, 130, 246, 0.6);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
