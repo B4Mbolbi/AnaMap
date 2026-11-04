@@ -12,7 +12,7 @@
 
 /** Открытие модалки с деталями события */
 function openEventDetail(id) {
-    const ev = State.events.find(e => e.id === id);
+    const ev = Store.state.events.find(e => e.id === id);
     if (!ev) return;
 
     EventListState.currentDetailId = id;
@@ -21,7 +21,7 @@ function openEventDetail(id) {
     const currentStatus = allStatuses.find(s => s.key === ev.status) || { label: ev.status, color: CONFIG.DEFAULT_COLOR };
 
     // Получаем связи для этого события
-    const eventLinks = State.getLinksForEvent(id);
+    const eventLinks = Store.getLinksForEvent(id);
 
     const content = document.getElementById('event-detail-content');
     content.innerHTML = `
@@ -111,7 +111,7 @@ function _renderLinkItem(link, currentEvent) {
     const linkType = CONFIG.LINK_TYPES[link.type] || CONFIG.LINK_TYPES.coincidence;
     const isFrom = link.from === currentEvent.id;
     const otherId = isFrom ? link.to : link.from;
-    const otherEvent = State.events.find(e => e.id === otherId);
+    const otherEvent = Store.state.events.find(e => e.id === otherId);
     const arrow = isFrom ? '→' : '←';
     const otherDesc = otherEvent ? escapeHtml(otherEvent.description) : 'Удалённое событие';
     const escapedComment = escapeHtml(link.comment || '');

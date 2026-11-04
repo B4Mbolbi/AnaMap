@@ -16,10 +16,10 @@ function renderStatsByTypes() {
     // Динамический заголовок панели
     const titleEl = container.parentElement.querySelector('.panel-title');
     if (titleEl) {
-        titleEl.textContent = State.viewMode === 'years' ? 'События по годам' : 'События по типам';
+        titleEl.textContent = Store.state.viewMode === 'years' ? 'События по годам' : 'События по типам';
     }
 
-    const filtered = State.getFilteredEvents();
+    const filtered = Store.getFilteredEventsFromVisibleLayers();
     const total = filtered.length || 1;
 
     getAllCategories().forEach(cat => {

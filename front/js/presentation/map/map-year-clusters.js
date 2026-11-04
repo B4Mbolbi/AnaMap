@@ -12,7 +12,7 @@
  * Отрисовка кластеров по годам
  */
 function renderYearClusters() {
-    const filtered = State.getFilteredEvents();
+    const filtered = Store.getFilteredEventsFromVisibleLayers();
     const years = {};
 
     filtered.forEach(ev => {

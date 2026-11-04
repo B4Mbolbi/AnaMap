@@ -16,9 +16,9 @@ function renderTimeline() {
     if (!container) return;
     container.innerHTML = '';
 
-    const filtered = State.getFilteredEvents();
+    const filtered = Store.getFilteredEventsFromVisibleLayers();
     const visibleIds = new Set(filtered.map(e => e.id));
-    const visibleLinks = State.links.filter(l => visibleIds.has(l.from) && visibleIds.has(l.to));
+    const visibleLinks = Store.state.links.filter(l => visibleIds.has(l.from) && visibleIds.has(l.to));
 
     if (filtered.length === 0 && visibleLinks.length === 0) {
         container.innerHTML = '<div style="color:#475569;font-size:11px;text-align:center;padding:12px 0;">Нет данных</div>';

@@ -19,13 +19,13 @@ function initEventHandlers() {
 
     // Фильтр по дате (диапазон)
     document.getElementById('filter-date-from').addEventListener('change', (e) => {
-        State.setFilterDateFrom(e.target.value);
+        Store.setFilterDateFrom(e.target.value);
         renderMap();
         renderUI();
         renderEventList();
     });
     document.getElementById('filter-date-to').addEventListener('change', (e) => {
-        State.setFilterDateTo(e.target.value);
+        Store.setFilterDateTo(e.target.value);
         renderMap();
         renderUI();
         renderEventList();
@@ -41,7 +41,7 @@ function initEventHandlers() {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.view-btn[data-mode]').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
-            State.setViewMode(e.target.dataset.mode);
+            Store.setViewMode(e.target.dataset.mode);
             renderMap();
             renderUI();
             renderEventList();

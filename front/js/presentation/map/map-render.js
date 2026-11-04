@@ -94,16 +94,17 @@ function renderMap() {
     }
 
     // Скрытие обычных маркеров в режиме «По годам»
-    if (State.viewMode === 'years') {
+    if (Store.state.viewMode === 'years') {
         MapView.map.removeLayer(mkl);
     }
 
     // Очищаем маппинг маркеров перед перерисовкой
     Object.keys(MapView.eventMarkers).forEach(id => delete MapView.eventMarkers[id]);
 
-    const filtered = State.getFilteredEvents();
+    // Получаем события всех видимых слоёв
+    const allVisibleEvents = Store.getFilteredEventsFromVisibleLayers();
 
-    filtered.forEach((ev, index) => {
+    allVisibleEvents.forEach((ev, index) => {
         const marker = _createEventMarker(ev, index);
 
         // Размещение маркера
@@ -119,7 +120,7 @@ function renderMap() {
     clearLinkHighlight();
     renderSavedLinks();
 
-    if (State.viewMode === 'years') {
+    if (Store.state.viewMode === 'years') {
         renderYearClusters();
     }
 

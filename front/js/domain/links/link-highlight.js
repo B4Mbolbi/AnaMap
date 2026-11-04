@@ -24,14 +24,14 @@ function highlightEventLinks(eventId) {
     clearLinkHighlight();
     _currentHighlightEventId = eventId;
     
-    const eventLinks = State.getLinksForEvent(eventId);
+    const eventLinks = Store.getLinksForEvent(eventId);
     if (eventLinks.length === 0) return;
     
     const linkedEventIds = new Set();
     
     // Подсвечиваем линии
     LinkMode.lines.forEach(polyline => {
-        const link = State.links.find(l => l.id === polyline._linkId);
+        const link = Store.state.links.find(l => l.id === polyline._linkId);
         if (!link) return;
         
         const isRelated = link.from === eventId || link.to === eventId;
@@ -67,7 +67,7 @@ function highlightEventLinks(eventId) {
  */
 function clearLinkHighlight() {
     _highlightedLines.forEach(polyline => {
-        const link = State.links.find(l => l.id === polyline._linkId);
+        const link = Store.state.links.find(l => l.id === polyline._linkId);
         if (link) {
             polyline.setStyle(getLinkStyle(link.type));
         }

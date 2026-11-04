@@ -14,7 +14,7 @@ function renderStatsByStatus() {
     container.innerHTML = '';
 
     const allStatuses = getAllStatuses();
-    const filtered = State.getFilteredEvents();
+    const filtered = Store.getFilteredEventsFromVisibleLayers();
     const statusCounts = {};
     allStatuses.forEach(s => statusCounts[s.key] = 0);
     filtered.forEach(e => {

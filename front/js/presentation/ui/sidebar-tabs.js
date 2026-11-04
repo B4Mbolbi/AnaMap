@@ -76,8 +76,8 @@ function switchSidebarTab(panelName, save = true) {
             // Обновить поиск/сортировку при открытии вкладки
             const searchInput = document.getElementById('event-search');
             const sortSelect = document.getElementById('event-sort');
-            if (searchInput) State.filters.search = searchInput.value;
-            if (sortSelect) State.filters.sortBy = sortSelect.value;
+            if (searchInput) Store.state.filters.search = searchInput.value;
+            if (sortSelect) Store.state.filters.sortBy = sortSelect.value;
             renderEventList();
             break;
     }

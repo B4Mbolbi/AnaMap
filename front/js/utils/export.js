@@ -17,10 +17,10 @@ const Export = {
 
     /**
      * Экспорт событий в JSON
-     * @param {Array} events - массив событий (по умолчанию State.events)
+     * @param {Array} events - массив событий (по умолчанию Store.state.events)
      */
     exportEventsJSON(events) {
-        events = events || State.events;
+        events = events || Store.state.events;
         if (!events || events.length === 0) {
             console.warn('[Export] Нет данных для экспорта');
             return;
@@ -31,10 +31,10 @@ const Export = {
 
     /**
      * Экспорт событий в CSV
-     * @param {Array} events - массив событий (по умолчанию State.events)
+     * @param {Array} events - массив событий (по умолчанию Store.state.events)
      */
     exportEventsCSV(events) {
-        events = events || State.events;
+        events = events || Store.state.events;
         if (!events || events.length === 0) {
             console.warn('[Export] Нет данных для экспорта');
             return;
@@ -64,10 +64,10 @@ const Export = {
 
     /**
      * Экспорт связей в JSON
-     * @param {Array} links - массив связей (по умолчанию State.links)
+     * @param {Array} links - массив связей (по умолчанию Store.state.links)
      */
     exportLinksJSON(links) {
-        links = links || State.links;
+        links = links || Store.state.links;
         const data = JSON.stringify(links, null, 2);
         this.downloadFile(data, `anemap_links_${this.getDateString()}.json`, 'application/json');
     },
@@ -77,7 +77,7 @@ const Export = {
      * @param {Array} links - массив связей
      */
     exportLinksCSV(links) {
-        links = links || State.links;
+        links = links || Store.state.links;
         if (!links || links.length === 0) {
             console.warn('[Export] Нет связей для экспорта');
             return;
@@ -85,8 +85,8 @@ const Export = {
 
         const headers = ['ID', 'From', 'To', 'FromDesc', 'ToDesc', 'FromType', 'ToType'];
         const rows = links.map(link => {
-            const fromEvent = State.events.find(e => e.id === link.from);
-            const toEvent = State.events.find(e => e.id === link.to);
+            const fromEvent = Store.state.events.find(e => e.id === link.from);
+            const toEvent = Store.state.events.find(e => e.id === link.to);
             return [
                 link.id,
                 fromEvent?.id || '',
@@ -124,7 +124,7 @@ const Export = {
                 return { imported: 0, updated: 0, skipped: 0, errors: ['Файл не содержит массив событий'] };
             }
 
-            const existingIds = new Set(State.events.map(e => e.id));
+            const existingIds = new Set(Store.state.events.map(e => e.id));
             let imported = 0;
             let updated = 0;
             let skipped = 0;
@@ -139,13 +139,13 @@ const Export = {
                 }
 
                 if (existingIds.has(ev.id)) {
-                    const idx = State.events.findIndex(e => e.id === ev.id);
+                    const idx = Store.state.events.findIndex(e => e.id === ev.id);
                     if (idx !== -1) {
-                        State.events[idx] = { ...State.events[idx], ...ev };
+                        Store.state.events[idx] = { ...Store.state.events[idx], ...ev };
                         updated++;
                     }
                 } else {
-                    State.events.push(ev);
+                    Store.state.events.push(ev);
                     imported++;
                 }
             }
@@ -220,7 +220,7 @@ const Export = {
         const results = [];
         let invalidCount = 0;
 
-        for (const ev of State.events) {
+        for (const ev of Store.state.events) {
             const validation = this.validateEvent(ev);
             if (!validation.valid) {
                 invalidCount++;
@@ -235,7 +235,7 @@ const Export = {
         return {
             valid: invalidCount === 0,
             results,
-            total: State.events.length,
+            total: Store.state.events.length,
             invalid: invalidCount
         };
     },
@@ -261,8 +261,9 @@ const Export = {
     /**
      * Импорт проекта из JSON-файла
      * Поддерживает два формата:
-     *   1. Один объект: { name, events, links }
-     *   2. Массив объектов: [ { name, events, links }, ... ]
+     *   1. v1: { name, events, links }
+     *   2. v2: { name, layers: [{ events, links }] }
+     *   3. Массив объектов любого формата
      * @param {File} file - файл .json
      * @returns {Promise<object>} результат импорта
      */
@@ -276,13 +277,12 @@ const Export = {
                 return { success: false, error: 'Файл пуст' };
             }
 
-            // Валидировать каждый элемент: нужен объект с полем events (массив)
+            // Валидировать каждый элемент: нужен events (v1) или layers (v2)
             const validProjects = [];
             let skipped = 0;
 
             for (const item of items) {
-                if (item && typeof item === 'object' && Array.isArray(item.events)) {
-                    // name необязателен — подставим «Без названия»
+                if (item && typeof item === 'object' && (Array.isArray(item.events) || Array.isArray(item.layers))) {
                     validProjects.push(item);
                 } else {
                     skipped++;
@@ -293,7 +293,7 @@ const Export = {
             if (validProjects.length === 0) {
                 return {
                     success: false,
-                    error: `В файле нет ни одного проекта с полем "events" (массив). Пропущено: ${skipped}`
+                    error: `В файле нет ни одного проекта с полями "events" (v1) или "layers" (v2). Пропущено: ${skipped}`
                 };
             }
 

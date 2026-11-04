@@ -19,7 +19,7 @@ function createLink() {
     const to = LinkMode.selection[LinkMode.selection.length - 1];
 
     if (from.data.id === to.data.id) return;
-    if (State.linkExists(from.data.id, to.data.id)) {
+    if (Store.linkExists(from.data.id, to.data.id)) {
         console.warn('Связь между этими событиями уже существует');
         return;
     }
@@ -34,7 +34,7 @@ function createLink() {
         
         polyline.bindPopup(_createLinkPopup(from.data, to.data, polyline));
         
-        const link = State.addLink({
+        const link = Store.addLink({
             from: from.data.id,
             to: to.data.id,
             type: type,
@@ -61,7 +61,7 @@ function createLink() {
  * Создать попап для линии связи
  */
 function _createLinkPopup(fromEvent, toEvent, polyline) {
-    const link = State.links.find(l => l.id === polyline._linkId);
+    const link = Store.state.links.find(l => l.id === polyline._linkId);
     if (!link) return '';
 
     const linkType = CONFIG.LINK_TYPES[link.type] || CONFIG.LINK_TYPES.coincidence;
@@ -93,7 +93,7 @@ function removeLink(polyline, linkId) {
     
     _getLayer(linksLayer).removeLayer(polyline);
     LinkMode.lines = LinkMode.lines.filter(l => l !== polyline);
-    State.removeLink(linkId);
+    Store.removeLink(linkId);
 }
 
 /**
@@ -104,11 +104,13 @@ function renderSavedLinks() {
     LinkMode.lines.forEach(l => lkl.removeLayer(l));
     LinkMode.lines = [];
     
-    const filteredLinks = State.getFilteredLinks();
+    const filteredLinks = Store.getFilteredLinksFromVisibleLayers();
     
     filteredLinks.forEach(link => {
-        const fromEvent = State.events.find(e => e.id === link.from);
-        const toEvent = State.events.find(e => e.id === link.to);
+        const fromEvent = Store.state.events.find(e => e.id === link.from) 
+                       || Store.getFilteredEventsFromVisibleLayers().find(e => e.id === link.from);
+        const toEvent = Store.state.events.find(e => e.id === link.to)
+                     || Store.getFilteredEventsFromVisibleLayers().find(e => e.id === link.to);
         
         if (!fromEvent || !toEvent) return;
         
@@ -137,7 +139,7 @@ function renderSavedLinks() {
                 btnEdit.onclick = () => {
                     showLinkTypeModal(fromEvent, toEvent, (type, comment) => {
                         if (!type) return;
-                        State.updateLink(link.id, { type, comment });
+                        Store.updateLink(link.id, { type, comment });
                         polyline.closePopup();
                         renderMap();
                         if (typeof renderLinksPanel === 'function') {

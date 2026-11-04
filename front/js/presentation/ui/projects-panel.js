@@ -124,5 +124,31 @@ function renderProjectsPanel() {
         }
 
         container.appendChild(card);
+
+        // Секция слоёв для активного проекта
+        if (isActive) {
+            const layersDiv = document.createElement('div');
+            layersDiv.className = 'layers-section';
+            layersDiv.style.cssText = 'margin-top:8px;padding:8px;background:var(--bg-body);border:1px solid var(--border-subtle);border-radius:var(--radius-md);';
+            layersDiv.innerHTML = `
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                    <span style="font-size:11px;font-weight:600;color:var(--text-muted);">📂 Слои</span>
+                    <button id="btn-add-layer-inline" style="margin-left:auto;padding:2px 6px;font-size:10px;background:var(--accent-blue);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;">+ Новый</button>
+                </div>
+                <div id="layers-list"></div>
+            `;
+            container.appendChild(layersDiv);
+
+            // Обработчик кнопки «+ Новый слой»
+            const btnAddLayer = layersDiv.querySelector('#btn-add-layer-inline');
+            if (btnAddLayer) {
+                btnAddLayer.addEventListener('click', () => {
+                    handleAddLayer();
+                });
+            }
+
+            // Рендерим список слоёв
+            renderLayersPanel();
+        }
     });
 }

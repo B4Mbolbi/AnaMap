@@ -41,22 +41,22 @@ const App = {
     /**
      * Единая точка перерисовки UI.
      * Вызывается Store при каждом изменении состояния.
-     * @param {string} reason - 'events' | 'links' | 'filters' | 'projects' | 'view' | 'all'
+     * @param {string} reason - 'events' | 'links' | 'filters' | 'projects' | 'view' | 'layers' | 'all'
      */
     refresh(reason) {
         // Защита от вызова до инициализации
-        if (typeof renderMap !== 'function' && reason !== 'projects') return;
+        if (typeof renderMap !== 'function' && reason !== 'projects' && reason !== 'layers') return;
 
-        if (reason === 'all' || reason === 'events' || reason === 'filters' || reason === 'view') {
+        if (reason === 'all' || reason === 'events' || reason === 'filters' || reason === 'view' || reason === 'layers') {
             renderMap();
             renderUI();
             renderEventList();
         }
-        if (reason === 'all' || reason === 'links') {
+        if (reason === 'all' || reason === 'links' || reason === 'layers') {
             renderSavedLinks();
             renderLinksPanel();
         }
-        if (reason === 'all' || reason === 'projects') {
+        if (reason === 'all' || reason === 'projects' || reason === 'layers') {
             renderProjectsPanel();
             updateProjectSelector();
         }
@@ -95,6 +95,7 @@ const App = {
         initEventListFilters();
         initLinkHandlers();
         initStorageHandlers();
+        initLayersHandlers();
 
         // 6. Обновление списка типов в селекте
         updateEventTypeSelect();

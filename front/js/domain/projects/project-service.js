@@ -36,12 +36,19 @@ function getActiveProject() {
 function switchProject(projectId) {
     const currentId = Storage.getActiveProjectId();
 
-    // 1. Сохранить ТЕКУЩИЙ проект, только если он реально другой
+    // 1. Сохранить ТЕКУЩИЙ проект (текущий слой), только если он реально другой
     if (currentId && currentId !== projectId) {
         const current = Storage.loadProject(currentId);
         if (current) {
-            current.events = Store.state.events || [];
-            current.links  = Store.state.links  || [];
+            // Сохраняем текущие события/связи в активный слой
+            const activeLayerId = Store.state.activeLayerId;
+            if (activeLayerId) {
+                const layer = current.layers.find(l => l.id === activeLayerId);
+                if (layer) {
+                    layer.events = Store.state.events || [];
+                    layer.links  = Store.state.links  || [];
+                }
+            }
             Storage.saveProject(current);
         }
     }
@@ -56,34 +63,40 @@ function switchProject(projectId) {
     // 3. Установить активный ДО записи в Store
     Storage.setActiveProjectId(projectId);
 
-    // 4. Нормализовать данные
-    const events = (full.events || []).map(normalizeEvent).filter(Boolean);
-    const links  = (full.links  || []).filter(l => l && l.from && l.to);
+    // 4. Загрузить данные первого видимого слоя
+    const defaultLayer = full.layers && full.layers.length > 0 ? full.layers[0] : null;
+    if (!defaultLayer) {
+        console.error('[switchProject] Нет слоёв в проекте:', projectId);
+        return false;
+    }
 
-    // 5. Записать в Store (через commit — вызовет App.refresh)
+    // 5. Установить активный слой
+    Store.setActiveLayerId(defaultLayer.id);
+    Store.setLayers(full.layers);
+
+    // 6. Нормализовать данные
+    const events = (defaultLayer.events || []).map(normalizeEvent).filter(Boolean);
+    const links  = (defaultLayer.links  || []).filter(l => l && l.from && l.to);
+
+    // 7. Записать в Store (через commit — вызовет App.refresh)
     Store.setEvents(events);
     Store.commit(s => { s.links = links; }, 'links');
 
-    // 6. Сбросить фильтры, чтобы новые данные были видны
+    // 8. Сбросить фильтры, чтобы новые данные были видны
     Store.resetFilters();
 
-    // 7. Явный refresh (на случай, если подписка ещё не установлена)
+    // 9. Явный refresh (на случай, если подписка ещё не установлена)
     if (typeof App !== 'undefined' && typeof App.refresh === 'function') {
         App.refresh('all');
     }
 
     console.log('[switchProject]', {
         projectId,
+        activeLayerId: Store.state.activeLayerId,
+        layers: full.layers.length,
         events: Store.state.events.length,
         links: Store.state.links.length,
-        visible: Store.getFilteredEvents().length,
-        filters: {
-            types: [...Store.state.filters.types],
-            status: Store.state.filters.status,
-            dateFrom: Store.state.filters.dateFrom,
-            dateTo: Store.state.filters.dateTo,
-            search: Store.state.filters.search
-        }
+        visible: Store.getFilteredEvents().length
     });
 
     return true;
@@ -108,7 +121,7 @@ function renameProject(projectId, newName) {
 }
 
 /**
- * Удалить проект
+ * Удалить проект (и все его слои)
  * @param {string} projectId 
  * @returns {object|null} - переключённый проект или null
  */
@@ -126,8 +139,13 @@ function deleteProject(projectId) {
         if (projects.length > 0) {
             Storage.setActiveProjectId(projects[0].id);
             switchedProject = Storage.loadProject(projects[0].id);
-            Store.setEvents(switchedProject.events || []);
-            Store.commit(state => { state.links = switchedProject.links || []; }, 'links');
+            // Переключаем на первый слой нового проекта
+            if (switchedProject.layers && switchedProject.layers.length > 0) {
+                Store.setActiveLayerId(switchedProject.layers[0].id);
+                Store.setLayers(switchedProject.layers);
+                Store.setEvents(switchedProject.layers[0].events || []);
+                Store.commit(state => { state.links = switchedProject.layers[0].links || []; }, 'links');
+            }
         } else {
             const newProject = Storage.createProject('Мой проект');
             switchedProject = newProject;

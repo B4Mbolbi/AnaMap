@@ -13,7 +13,7 @@ function updateHeatLayer() {
     if (!MapView.map) return;
     const htl = _getLayer(heatLayer);
     if (!htl) return;
-    const filtered = State.getFilteredEvents();
+    const filtered = Store.getFilteredEventsFromVisibleLayers();
     const points = filtered.map(ev => [ev.lat, ev.lng, 0.6]);
     htl.setLatLngs(points);
     htl.redraw();

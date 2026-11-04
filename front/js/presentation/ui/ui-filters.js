@@ -15,7 +15,7 @@ function renderFilterButtons() {
     container.innerHTML = '';
 
     getAllCategories().forEach(cat => {
-        const isActive = State.filters.types.has(cat.key);
+        const isActive = Store.state.filters.types.has(cat.key);
         const isBaseCategory = CONFIG.BASE_LAYERS[cat.key];
 
         const btn = document.createElement('button');
@@ -36,10 +36,10 @@ function renderFilterButtons() {
         // Переключение фильтра по клику
         btn.onclick = (e) => {
             if (e.target.classList.contains('filter-delete')) return;
-            if (State.filters.types.has(cat.key)) {
-                State.filters.types.delete(cat.key);
+            if (Store.state.filters.types.has(cat.key)) {
+                Store.state.filters.types.delete(cat.key);
             } else {
-                State.filters.types.add(cat.key);
+                Store.state.filters.types.add(cat.key);
             }
             renderMap();
             renderUI();

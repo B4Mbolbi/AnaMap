@@ -48,13 +48,32 @@ const Storage = {
 
     /**
      * Загрузить полный объект проекта
+     * Миграция v1 (events/links на верхнем уровне) → v2 (layers)
      * @param {string} id 
      * @returns {object|null}
      */
     loadProject(id) {
         try {
             const data = localStorage.getItem(this._PROJECT_PREFIX + id);
-            return data ? JSON.parse(data) : null;
+            if (!data) return null;
+            const project = JSON.parse(data);
+            
+            // Миграция v1 → v2: если нет layers, но есть events/links
+            if (!project.layers) {
+                project.layers = [{
+                    id: 'layer_default',
+                    name: 'Основной',
+                    color: '#3b82f6',
+                    visible: true,
+                    events: project.events || [],
+                    links: project.links || []
+                }];
+                delete project.events;
+                delete project.links;
+                this.saveProject(project); // перезаписываем в новом формате
+            }
+            
+            return project;
         } catch (error) {
             console.error('[Storage] Ошибка загрузки проекта:', error);
             return null;
@@ -84,8 +103,14 @@ const Storage = {
             id: 'proj_' + Date.now(),
             name: name || 'Без названия',
             createdAt: new Date().toISOString(),
-            events: [],
-            links: []
+            layers: [{
+                id: 'layer_default',
+                name: 'Основной',
+                color: '#3b82f6',
+                visible: true,
+                events: [],
+                links: []
+            }]
         };
         projects.push(project);
         this.saveProjects(projects);
@@ -343,6 +368,142 @@ const Storage = {
     },
 
     // ==========================================
+    // СЛОИ (LAYERS)
+    // ==========================================
+
+    /**
+     * Получить ID активного слоя текущего проекта
+     * @returns {string|null}
+     */
+    getActiveLayerId() {
+        const projectId = this.getActiveProjectId();
+        if (!projectId) return null;
+        const project = this.loadProject(projectId);
+        if (!project || !project.layers || project.layers.length === 0) return null;
+        return project.layers[0].id; // первый слой — активный по умолчанию
+    },
+
+    /**
+     * Добавить слой в проект
+     * @param {string} projectId 
+     * @param {string} name 
+     * @param {string} [color] 
+     * @returns {object|null}
+     */
+    addLayer(projectId, name, color) {
+        const project = this.loadProject(projectId);
+        if (!project) return null;
+        
+        const layerColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a855f7', '#ec4899', '#06b6d4', '#84cc16'];
+        const usedColors = project.layers.map(l => l.color);
+        const newColor = color || layerColors.find(c => !usedColors.includes(c)) || '#888888';
+        
+        const newLayer = {
+            id: 'layer_' + Date.now(),
+            name: name || 'Новый слой',
+            color: newColor,
+            visible: true,
+            events: [],
+            links: []
+        };
+        
+        project.layers.push(newLayer);
+        this.saveProject(project);
+        return newLayer;
+    },
+
+    /**
+     * Переименовать слой
+     * @param {string} projectId 
+     * @param {string} layerId 
+     * @param {string} newName 
+     */
+    renameLayer(projectId, layerId, newName) {
+        const project = this.loadProject(projectId);
+        if (!project) return;
+        
+        const layer = project.layers.find(l => l.id === layerId);
+        if (layer) {
+            layer.name = newName.trim() || layer.name;
+            this.saveProject(project);
+        }
+    },
+
+    /**
+     * Удалить слой
+     * @param {string} projectId 
+     * @param {string} layerId 
+     * @returns {boolean} false если не найден или это единственный слой
+     */
+    removeLayer(projectId, layerId) {
+        const project = this.loadProject(projectId);
+        if (!project) return false;
+        if (project.layers.length <= 1) return false; // нельзя удалить единственный слой
+        
+        project.layers = project.layers.filter(l => l.id !== layerId);
+        this.saveProject(project);
+        return true;
+    },
+
+    /**
+     * Переключить видимость слоя
+     * @param {string} projectId 
+     * @param {string} layerId 
+     */
+    toggleLayerVisibility(projectId, layerId) {
+        const project = this.loadProject(projectId);
+        if (!project) return;
+        
+        const layer = project.layers.find(l => l.id === layerId);
+        if (layer) {
+            layer.visible = !layer.visible;
+            this.saveProject(project);
+        }
+    },
+
+    /**
+     * Получить данные видимых слоёв (events + links)
+     * @param {string} projectId 
+     * @returns {{events: Array, links: Array}}
+     */
+    getVisibleLayersData(projectId) {
+        const project = this.loadProject(projectId);
+        if (!project || !project.layers) return { events: [], links: [] };
+        
+        const visibleLayers = project.layers.filter(l => l.visible);
+        const events = [];
+        const links = [];
+        
+        visibleLayers.forEach(layer => {
+            if (layer.events) events.push(...layer.events);
+            if (layer.links) links.push(...layer.links);
+        });
+        
+        return { events, links };
+    },
+
+    /**
+     * Сохранить данные конкретного слоя
+     * @param {string} projectId 
+     * @param {string} layerId 
+     * @param {Array} events 
+     * @param {Array} links 
+     * @returns {boolean}
+     */
+    saveLayerData(projectId, layerId, events, links) {
+        const project = this.loadProject(projectId);
+        if (!project) return false;
+        
+        const layer = project.layers.find(l => l.id === layerId);
+        if (!layer) return false;
+        
+        layer.events = events || [];
+        layer.links = links || [];
+        this.saveProject(project);
+        return true;
+    },
+
+    // ==========================================
     // МИГРАЦИЯ
     // ==========================================
 
@@ -374,8 +535,14 @@ const Storage = {
                 const testProjects = TEST_DATA.map((p) => ({
                     ...p,
                     createdAt: p.createdAt || new Date().toISOString(),
-                    events: p.events || [],
-                    links: p.links || []
+                    layers: [{
+                        id: 'layer_default',
+                        name: 'Основной',
+                        color: '#3b82f6',
+                        visible: true,
+                        events: p.events || [],
+                        links: p.links || []
+                    }]
                 }));
                 
                 this.saveProjects(testProjects);
@@ -396,13 +563,19 @@ const Storage = {
             return;
         }
 
-        // Создаём проект из данных
+        // Создаём проект из данных с layers
         const project = {
             id: 'proj_default',
             name: 'Мой проект',
             createdAt: new Date().toISOString(),
-            events: oldEvents,
-            links: oldLinks
+            layers: [{
+                id: 'layer_default',
+                name: 'Основной',
+                color: '#3b82f6',
+                visible: true,
+                events: oldEvents,
+                links: oldLinks
+            }]
         };
 
         this.saveProjects([project]);

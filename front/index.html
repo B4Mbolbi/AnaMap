@@ -38,6 +38,9 @@
             <select id="project-selector" class="project-selector" title="Выбрать проект">
                 <option value="">Загрузка проектов...</option>
             </select>
+            <select id="layer-selector" class="layer-selector" title="Выбрать слой" style="display:none;">
+                <option value="">—</option>
+            </select>
             <div class="badge">
                 <div class="dot"></div>
                 <span id="event-count">0 событий</span>
@@ -206,7 +209,16 @@
                 <button class="view-btn active" data-mode="types">По типам</button>
                 <button class="view-btn" data-mode="years">По годам</button>
                 <button id="btn-link-mode" title="Режим связи">🔗</button>
+                <button id="btn-layers-mode" class="view-btn" title="Слои">📂</button>
                 <button id="btn-heat-mode" class="view-btn" title="Тепловая карта">🔥</button>
+            </div>
+            <!-- Dropdown слоёв -->
+            <div id="layers-dropdown" class="layers-dropdown hidden" style="position:absolute;top:50px;right:10px;z-index:1000;background:var(--bg-card);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:12px;font-weight:600;color:var(--text-muted);">📂 Слои</span>
+                    <button id="btn-add-layer-dropdown" style="padding:2px 6px;font-size:10px;background:var(--accent-blue);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;">+ Новый</button>
+                </div>
+                <div id="layers-dropdown-list"></div>
             </div>
         </main>
     </div>
@@ -452,6 +464,7 @@
     <script src="js/handlers/ui/statuses.js"></script>
     <script src="js/handlers/ui/projects.js"></script>
     <script src="js/handlers/ui/storage.js"></script>
+    <script src="js/handlers/ui/layers.js"></script>
     
     <!-- App Entry (Store.subscribe + App.init) -->
     <script src="js/core/app.js"></script>

@@ -15,7 +15,7 @@ function renderLinksPanel() {
     const container = document.getElementById('links-list');
     if (!container) return;
 
-    const links = State.links || [];
+    const links = Store.getFilteredLinksFromVisibleLayers();
 
     if (links.length === 0) {
         container.innerHTML = `
@@ -31,8 +31,8 @@ function renderLinksPanel() {
     container.innerHTML = '';
 
     links.forEach((link, index) => {
-        const fromEvent = State.events.find(e => e.id === link.from);
-        const toEvent = State.events.find(e => e.id === link.to);
+        const fromEvent = Store.state.events.find(e => e.id === link.from);
+        const toEvent = Store.state.events.find(e => e.id === link.to);
 
         if (!fromEvent || !toEvent) return;
 
@@ -78,7 +78,7 @@ function renderLinksPanel() {
  * @param {number} linkId 
  */
 function removeLinkById(linkId) {
-    State.removeLink(linkId);
+    Store.removeLink(linkId);
 
     // Удалить линию с карты
     const lkl = _getLayer(linksLayer);

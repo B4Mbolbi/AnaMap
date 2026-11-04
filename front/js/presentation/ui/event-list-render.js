@@ -11,7 +11,7 @@
 /** Рендеринг списка событий в сайдбаре */
 function renderEventList() {
     // Скрытие в режиме «По годам»
-    if (State.viewMode === 'years') {
+    if (Store.state.viewMode === 'years') {
         document.getElementById('event-list-panel').style.display = 'none';
         return;
     }
@@ -114,14 +114,14 @@ function initEventListFilters() {
 
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            State.setFilterSearch(e.target.value);
+            Store.setFilterSearch(e.target.value);
             renderEventList();
         });
     }
 
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
-            State.setFilterSortBy(e.target.value);
+            Store.setFilterSortBy(e.target.value);
             renderEventList();
         });
     }

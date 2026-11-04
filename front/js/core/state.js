@@ -17,6 +17,7 @@ const State = {
     // Прокси на Store.state для чтения
     get events() { return Store.state.events; },
     get links() { return Store.state.links; },
+    get layers() { return Store.state.layers; },
     get filters() { return Store.state.filters; },
     get viewMode() { return Store.state.viewMode; },
 
@@ -34,5 +35,10 @@ const State = {
     getLinksForEvent(eventId) { return Store.getLinksForEvent(eventId); },
     linkExists(fromId, toId) { return Store.linkExists(fromId, toId); },
     getFilteredEvents() { return Store.getFilteredEvents(); },
-    getFilteredLinks() { return Store.getFilteredLinks(); }
+    getFilteredLinks() { return Store.getFilteredLinks(); },
+    
+    // Слои
+    setLayers(layers) { Store.setLayers(layers); },
+    setActiveLayerId(id) { Store.setActiveLayerId(id); },
+    toggleLayerVisibility(id) { Store.toggleLayerVisibility(id); }
 };

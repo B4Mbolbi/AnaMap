@@ -14,7 +14,7 @@ function renderStatusFilter() {
     if (!select) return;
 
     const allStatuses = getAllStatuses();
-    const currentVal = State.filters.status || '';
+    const currentVal = Store.state.filters.status || '';
 
     // Сохраняем текущий выбор
     select.innerHTML = '<option value="">Все статусы</option>';
@@ -28,7 +28,7 @@ function renderStatusFilter() {
 
     // Обработчик изменения
     select.onchange = () => {
-        State.filters.status = select.value || '';
+        Store.state.filters.status = select.value || '';
         renderMap();
         renderUI();
         renderEventList();
@@ -37,10 +37,10 @@ function renderStatusFilter() {
 
 /** Очистка всех фильтров */
 function clearAllFilters() {
-    State.filters.types = new Set(getAllCategories().map(c => c.key));
-    State.filters.dateFrom = '';
-    State.filters.dateTo = '';
-    State.filters.status = '';
+    Store.state.filters.types = new Set(getAllCategories().map(c => c.key));
+    Store.state.filters.dateFrom = '';
+    Store.state.filters.dateTo = '';
+    Store.state.filters.status = '';
 
     // Обновляем UI
     const dateFrom = document.getElementById('filter-date-from');

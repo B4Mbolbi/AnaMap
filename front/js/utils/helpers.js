@@ -88,7 +88,7 @@ function getAllStatuses() {
  * @returns {Array} массив {key, label, color, events}
  */
 function groupEventsByCategory() {
-    const filtered = State.getFilteredEvents();
+    const filtered = Store.getFilteredEventsFromVisibleLayers();
     const groups = {};
 
     filtered.forEach(ev => {
@@ -173,13 +173,43 @@ function normalizeEvent(ev) {
 
 /**
  * Нормализовать проект: события, ссылки, поля.
+ * Поддерживает v1 (events/links на верхнем уровне) и v2 (layers).
  * @param {object} raw
  * @returns {object|null}
  */
 function normalizeProject(raw) {
     if (!raw || typeof raw !== 'object') return null;
-    if (!Array.isArray(raw.events)) return null;
+    if (!Array.isArray(raw.events) && !Array.isArray(raw.layers)) return null;
 
+    // v2: есть layers
+    if (Array.isArray(raw.layers)) {
+        const normalizedLayers = raw.layers.map(layer => {
+            const events = (layer.events || []).map(normalizeEvent).filter(Boolean);
+            const validIds = new Set(events.map(e => e.id));
+            const links = (layer.links || []).filter(l =>
+                l && l.from && l.to &&
+                validIds.has(l.from) && validIds.has(l.to) &&
+                ['cause', 'effect', 'coincidence'].includes(l.type || 'coincidence')
+            );
+            return {
+                id: layer.id || 'layer_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                name: layer.name || 'Слой',
+                color: layer.color || '#3b82f6',
+                visible: layer.visible !== false,
+                events,
+                links
+            };
+        });
+
+        return {
+            id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+            name: String(raw.name || 'Без названия').trim() || 'Без названия',
+            createdAt: raw.createdAt || new Date().toISOString(),
+            layers: normalizedLayers
+        };
+    }
+
+    // v1: events/links на верхнем уровне → оборачиваем в дефолтный слой
     const events = raw.events.map(normalizeEvent).filter(Boolean);
     const validIds = new Set(events.map(e => e.id));
 
@@ -195,7 +225,13 @@ function normalizeProject(raw) {
         id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
         name: String(raw.name || 'Без названия').trim() || 'Без названия',
         createdAt: raw.createdAt || new Date().toISOString(),
-        events,
-        links
+        layers: [{
+            id: 'layer_default',
+            name: 'Основной',
+            color: '#3b82f6',
+            visible: true,
+            events,
+            links
+        }]
     };
 }

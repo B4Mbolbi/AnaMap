@@ -18,6 +18,10 @@ const Store = {
         events: [],
         /** Массив связей [{from, to, id, type, comment}] */
         links: [],
+        /** Методы слоёв [{id, name, color, visible}] */
+        layers: [],
+        /** ID активного слоя (куда добавляются новые метки) */
+        activeLayerId: null,
         /** Текущие фильтры */
         filters: {
             types: new Set(['personal', 'traffic', 'roadwork', 'safety']),
@@ -72,8 +76,17 @@ const Store = {
      * @param {string} reason 
      */
     _persist(reason) {
-        if (reason === 'events') Storage.saveEvents(this.state.events);
-        if (reason === 'links')  Storage.saveLinks(this.state.links);
+        const projectId = Storage.getActiveProjectId();
+        if (!projectId) return;
+        const layerId = this.state.activeLayerId;
+        if (!layerId) return;
+        
+        if (reason === 'events') {
+            Storage.saveLayerData(projectId, layerId, this.state.events, null);
+        }
+        if (reason === 'links') {
+            Storage.saveLayerData(projectId, layerId, null, this.state.links);
+        }
     },
 
     // ==========================================
@@ -89,37 +102,19 @@ const Store = {
     },
 
     /**
-     * Получить отфильтрованные события
+     * Получить отфильтрованные события (с поддержкой слоёв)
      * @returns {Array}
      */
     getFilteredEvents() {
-        let result = this.state.events.filter(e => {
-            if (!this.state.filters.types.has(e.type)) return false;
-            if (this.state.filters.status && e.status !== this.state.filters.status) return false;
-            if (this.state.filters.dateFrom && e.date < this.state.filters.dateFrom) return false;
-            if (this.state.filters.dateTo && e.date > this.state.filters.dateTo) return false;
-            if (this.state.filters.search) {
-                const searchLower = this.state.filters.search.toLowerCase();
-                if (!e.description?.toLowerCase().includes(searchLower)) return false;
-            }
-            return true;
-        });
+        return this.getFilteredEventsFromVisibleLayers();
+    },
 
-        const sortBy = this.state.filters.sortBy;
-        if (sortBy === 'date_desc') {
-            result.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-        } else if (sortBy === 'date_asc') {
-            result.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-        } else if (sortBy === 'status') {
-            const statusOrder = ['planned', 'in_progress', 'completed'];
-            result.sort((a, b) => {
-                const sa = statusOrder.indexOf(a.status) >= 0 ? statusOrder.indexOf(a.status) : 99;
-                const sb = statusOrder.indexOf(b.status) >= 0 ? statusOrder.indexOf(b.status) : 99;
-                return sa - sb;
-            });
-        }
-
-        return result;
+    /**
+     * Получить отфильтрованные связи (с поддержкой слоёв)
+     * @returns {Array}
+     */
+    getFilteredLinks() {
+        return this.getFilteredLinksFromVisibleLayers();
     },
 
     // ==========================================
@@ -238,6 +233,90 @@ const Store = {
 
     setActiveProjectId(projectId) {
         this.commit(state => { state.activeProjectId = projectId; }, 'projects');
+    },
+
+    // ==========================================
+    // СЛОИ
+    // ==========================================
+
+    /**
+     * Установить список слоёв
+     * @param {Array} layers 
+     */
+    setLayers(layers) {
+        this.commit(state => { state.layers = layers; }, 'layers');
+    },
+
+    /**
+     * Установить ID активного слоя
+     * @param {string} layerId 
+     */
+    setActiveLayerId(layerId) {
+        this.commit(state => { state.activeLayerId = layerId; }, 'layers');
+    },
+
+    /**
+     * Переключить видимость слоя
+     * @param {string} layerId 
+     */
+    toggleLayerVisibility(layerId) {
+        this.commit(state => {
+            const layer = state.layers.find(l => l.id === layerId);
+            if (layer) layer.visible = !layer.visible;
+        }, 'layers');
+    },
+
+    /**
+     * Получить отфильтрованные события всех видимых слоёв
+     * @returns {Array}
+     */
+    getFilteredEventsFromVisibleLayers() {
+        // Собираем события только из видимых слоёв
+        const visibleEvents = this.state.layers
+            .filter(l => l.visible)
+            .flatMap(l => l.events || []);
+        
+        // Фильтруем по текущим фильтрам
+        let result = visibleEvents.filter(e => {
+            if (!this.state.filters.types.has(e.type)) return false;
+            if (this.state.filters.status && e.status !== this.state.filters.status) return false;
+            if (this.state.filters.dateFrom && e.date < this.state.filters.dateFrom) return false;
+            if (this.state.filters.dateTo && e.date > this.state.filters.dateTo) return false;
+            if (this.state.filters.search) {
+                const searchLower = this.state.filters.search.toLowerCase();
+                if (!e.description?.toLowerCase().includes(searchLower)) return false;
+            }
+            return true;
+        });
+
+        const sortBy = this.state.filters.sortBy;
+        if (sortBy === 'date_desc') {
+            result.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        } else if (sortBy === 'date_asc') {
+            result.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+        } else if (sortBy === 'status') {
+            const statusOrder = ['planned', 'in_progress', 'completed'];
+            result.sort((a, b) => {
+                const sa = statusOrder.indexOf(a.status) >= 0 ? statusOrder.indexOf(a.status) : 99;
+                const sb = statusOrder.indexOf(b.status) >= 0 ? statusOrder.indexOf(b.status) : 99;
+                return sa - sb;
+            });
+        }
+
+        return result;
+    },
+
+    /**
+     * Получить отфильтрованные связи всех видимых слоёв
+     * @returns {Array}
+     */
+    getFilteredLinksFromVisibleLayers() {
+        const visibleLinks = this.state.layers
+            .filter(l => l.visible)
+            .flatMap(l => l.links || []);
+        
+        const visibleIds = new Set(this.getFilteredEventsFromVisibleLayers().map(e => e.id));
+        return visibleLinks.filter(l => visibleIds.has(l.from) && visibleIds.has(l.to));
     },
 
     // ==========================================

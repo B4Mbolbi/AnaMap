@@ -10,6 +10,6 @@
 
 /** Обновление счётчика событий в шапке */
 function updateEventCount() {
-    const count = State.getFilteredEvents().length;
+    const count = Store.getFilteredEventsFromVisibleLayers().length;
     document.getElementById('event-count').textContent = `${count} событий`;
 }
