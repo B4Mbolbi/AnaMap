@@ -10,76 +10,100 @@
  */
 
 let linkMode = false;
-let linkSelection = []; // Выбранные маркеры для связи
+let linkSelection = []; // Выбранные маркеры для связи [{marker, data}]
 let linkLines = []; // Массив L.polyline
-let savedLinks = []; // Сохранённые связи [{from, to}]
-const LINKS_STORAGE_KEY = 'event_links';
+let savedLinks = []; // Сохранённые связи [{from, to, id}]
 
 /**
- * Загрузить сохранённые связи из localStorage
+ * Загрузить сохранённые связи из Storage
  */
 function loadSavedLinks() {
-    try {
-        const data = localStorage.getItem(LINKS_STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-    } catch (error) {
-        console.error('Ошибка загрузки связей:', error);
-        return [];
-    }
+    return Storage.loadLinks();
 }
 
 /**
- * Сохранить связи в localStorage
+ * Сохранить связи в Storage
  * @param {Array} links 
  */
 function saveLinks(links) {
-    try {
-        localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(links));
-    } catch (error) {
-        console.error('Ошибка сохранения связей:', error);
+    Storage.saveLinks(links);
+}
+
+/**
+ * Войти в режим связи
+ */
+function enterLinkMode() {
+    linkMode = true;
+    linkSelection = [];
+
+    // Убираем кластер
+    map.removeLayer(markersLayer);
+
+    // Скрываем тепловую карту если активна
+    if (heatVisible) {
+        map.removeLayer(heatLayer);
     }
+
+    // Перерисовываем карту — маркеры идут напрямую на map
+    renderMap();
+
+    // UI
+    const btn = document.getElementById('btn-link-mode');
+    btn.classList.add('active');
+    btn.style.background = '#3b82f633';
+    btn.style.borderColor = '#3b82f666';
+    btn.style.color = '#3b82f6';
+    map.getContainer().style.cursor = 'crosshair';
+    showLinkHint();
+    updateLinkHint();
+}
+
+/**
+ * Выйти из режима связи
+ */
+function exitLinkMode() {
+    linkMode = false;
+
+    // Удаляем все маркеры с флагом _isEventMarker
+    map.eachLayer(layer => {
+        if (layer._isEventMarker) {
+            map.removeLayer(layer);
+        }
+    });
+
+    // Очищаем выбор и линии
+    clearSelection();
+
+    // Возвращаем кластер
+    map.addLayer(markersLayer);
+
+    // Перерисовываем маркеры в кластер
+    renderMap();
+
+    // Возвращаем тепловую карту если была активна
+    if (heatVisible) {
+        heatLayer.addTo(map);
+        updateHeatLayer();
+    }
+
+    // UI
+    const btn = document.getElementById('btn-link-mode');
+    btn.classList.remove('active');
+    btn.style.background = '';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+    map.getContainer().style.cursor = '';
+    hideLinkHint();
 }
 
 /**
  * Переключить режим связи
  */
 function toggleLinkMode() {
-    linkMode = !linkMode;
-    linkSelection = [];
-    
-    // Очищаем временные линии при выходе из режима
-    if (!linkMode) {
-        clearTempLinks();
-    }
-    
-    const btn = document.getElementById('btn-link-mode');
     if (linkMode) {
-        btn.classList.add('active');
-        btn.style.background = '#3b82f633';
-        btn.style.borderColor = '#3b82f666';
-        btn.style.color = '#3b82f6';
-        map.getContainer().style.cursor = 'crosshair';
-        showLinkHint();
-        // Перерисовываем карту — маркеры переходят из кластера на карту
-        renderMap();
+        exitLinkMode();
     } else {
-        btn.classList.remove('active');
-        btn.style.background = '';
-        btn.style.borderColor = '';
-        btn.style.color = '';
-        map.getContainer().style.cursor = '';
-        hideLinkHint();
-        clearSelection();
-        
-        // Удаляем все маркеры, добавленные напрямую на карту
-        map.eachLayer((layer) => {
-            if (layer._isEventMarker) {
-                map.removeLayer(layer);
-            }
-        });
-        
-        // renderMap() сам добавит кластер и перерисует маркеры
-        renderMap();
+        enterLinkMode();
     }
 }
 
@@ -141,17 +165,21 @@ function updateLinkHint() {
 }
 
 /**
- * Очистить выбор
+ * Очистить выбор и временные линии
  */
 function clearSelection() {
+    // Сбрасываем подсветку маркеров
     linkSelection.forEach(item => {
-        if (item.marker) {
-            item.marker.setStyle({ weight: 2, opacity: 1 });
+        if (item.marker && item.marker._icon) {
+            item.marker._icon.classList.remove('link-selected');
         }
     });
+    linkSelection = [];
+
+    // Удаляем временные линии
     linkLines.forEach(l => linksLayer.removeLayer(l));
     linkLines = [];
-    linkSelection = [];
+
     updateLinkHint();
 }
 
@@ -161,14 +189,24 @@ function clearSelection() {
  * @param {object} eventData 
  */
 function addMarkerToSelection(marker, eventData) {
+    // Проверяем, не выбран ли уже
+    const exists = linkSelection.some(item => item.data.id === eventData.id);
+    if (exists) {
+        // Снимаем выбор
+        linkSelection = linkSelection.filter(item => item.data.id !== eventData.id);
+        if (marker._icon) {
+            marker._icon.classList.remove('link-selected');
+        }
+        updateLinkHint();
+        return;
+    }
+
     linkSelection.push({ marker, data: eventData });
     
     // Подсветка выбранного маркера
-    marker.setStyle({ 
-        weight: 4, 
-        opacity: 1,
-        fillOpacity: 1
-    });
+    if (marker._icon) {
+        marker._icon.classList.add('link-selected');
+    }
     
     updateLinkHint();
     
@@ -179,23 +217,44 @@ function addMarkerToSelection(marker, eventData) {
 }
 
 /**
+ * Проверить, существует ли связь между двумя событиями
+ * @param {string} fromId 
+ * @param {string} toId 
+ * @returns {boolean}
+ */
+function linkExists(fromId, toId) {
+    return savedLinks.some(link => 
+        (link.from === fromId && link.to === toId) ||
+        (link.from === toId && link.to === fromId)
+    );
+}
+
+/**
  * Создать линию между выбранными маркерами
  */
 function createLink() {
     if (linkSelection.length < 2) return;
     
-    // Берём последние 2 маркера
     const from = linkSelection[linkSelection.length - 2];
     const to = linkSelection[linkSelection.length - 1];
+
+    // Проверяем, что маркеры разные
+    if (from.data.id === to.data.id) return;
+
+    // Проверяем дубликат связи
+    if (linkExists(from.data.id, to.data.id)) {
+        console.warn('Связь между этими событиями уже существует');
+        return;
+    }
     
     // Создаём полилинию
     const polyline = L.polyline(
         [[from.data.lat, from.data.lng], [to.data.lat, to.data.lng]],
         {
-            color: '#3b82f6',
-            weight: 2,
-            opacity: 0.6,
-            dashArray: '8, 6',
+            color: CONFIG.LINK.COLOR,
+            weight: CONFIG.LINK.WEIGHT,
+            opacity: CONFIG.LINK.OPACITY,
+            dashArray: CONFIG.LINK.DASH_ARRAY,
             lineCap: 'round'
         }
     ).addTo(linksLayer);
@@ -216,51 +275,51 @@ function createLink() {
         const btn = document.querySelector('.btn-remove-link');
         if (btn) {
             btn.onclick = () => {
-                removeLink(polyline, from.data.id, to.data.id);
+                removeLink(polyline, polyline._linkId);
             };
         }
     });
     
+    // Сохраняем id связи на polyline для удаления
+    const linkId = Date.now();
+    polyline._linkId = linkId;
     linkLines.push(polyline);
     
     // Сохраняем связь
     const link = {
         from: from.data.id,
         to: to.data.id,
-        id: Date.now()
+        id: linkId
     };
     savedLinks.push(link);
     saveLinks(savedLinks);
     
-    // Очищаем выбор и добавляем последний маркер для продолжения цепочки
-    const lastMarker = linkSelection[linkSelection.length - 1];
+    // Снимаем выделение, оставляем последний для цепочки
     linkSelection.forEach(item => {
-        if (item.marker) {
-            item.marker.setStyle({ weight: 2, opacity: 1 });
+        if (item.marker && item.marker._icon) {
+            item.marker._icon.classList.remove('link-selected');
         }
     });
-    linkSelection = [lastMarker];
+    linkSelection = [to];
     updateLinkHint();
-}
-
-/**
- * Удалить все временные линии
- */
-function clearTempLinks() {
-    linkLines.forEach(l => linksLayer.removeLayer(l));
-    linkLines = [];
 }
 
 /**
  * Удалить связь
  * @param {L.Polyline} polyline 
- * @param {string} fromId 
- * @param {string} toId 
+ * @param {number} linkId 
  */
-function removeLink(polyline, fromId, toId) {
+function removeLink(polyline, linkId) {
+    if (!polyline) return;
+    
+    // Удаляем линию с карты
     linksLayer.removeLayer(polyline);
+    
+    // Удаляем из массива временных линий
     linkLines = linkLines.filter(l => l !== polyline);
-    savedLinks = savedLinks.filter(l => !(l.from === fromId && l.to === toId));
+    
+    // Удаляем из сохранённых связей
+    savedLinks = savedLinks.filter(l => l.id !== linkId);
     saveLinks(savedLinks);
 }
 
@@ -281,13 +340,16 @@ function renderSavedLinks() {
         const polyline = L.polyline(
             [[fromEvent.lat, fromEvent.lng], [toEvent.lat, toEvent.lng]],
             {
-                color: '#3b82f6',
-                weight: 2,
-                opacity: 0.6,
-                dashArray: '8, 6',
+                color: CONFIG.LINK.COLOR,
+                weight: CONFIG.LINK.WEIGHT,
+                opacity: CONFIG.LINK.OPACITY,
+                dashArray: CONFIG.LINK.DASH_ARRAY,
                 lineCap: 'round'
             }
         ).addTo(linksLayer);
+        
+        // Сохраняем id связи
+        polyline._linkId = link.id;
         
         polyline.bindPopup(`
             <div style="padding:8px;font-size:12px;">
@@ -303,7 +365,7 @@ function renderSavedLinks() {
             const btn = document.querySelector('.btn-remove-link');
             if (btn) {
                 btn.onclick = () => {
-                    removeLink(polyline, link.from, link.to);
+                    removeLink(polyline, link.id);
                 };
             }
         });
@@ -319,10 +381,10 @@ function initLinkHandlers() {
     // Кнопка режима связи
     document.getElementById('btn-link-mode').onclick = toggleLinkMode;
     
-    // Esc — отмена режима связи
+    // Esc — выход из режима связи (не toggle, а именно выход)
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && linkMode) {
-            toggleLinkMode();
+            exitLinkMode();
         }
     });
 }
