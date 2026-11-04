@@ -128,9 +128,9 @@ function renderProjectsPanel() {
 
         const btnDelete = card.querySelector('.btn-delete-project');
         if (btnDelete) {
-            btnDelete.addEventListener('click', (e) {
+            btnDelete.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (confirm(`Удалить проект "${project.name}"?`)) {
+                if (confirm('Удалить проект "' + project.name + '"?')) {
                     deleteProject(project.id);
                 }
             });

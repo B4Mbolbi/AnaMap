@@ -364,10 +364,6 @@
     <script src="js/components/eventListRender.js"></script>
     <script src="js/components/eventListActions.js"></script>
     <script src="js/components/eventListDetail.js"></script>
-    <!-- sidebar tabs + новые панели -->
-    <script src="js/components/sidebarTabs.js"></script>
-    <script src="js/components/linksPanel.js"></script>
-    <script src="js/components/projectsPanel.js"></script>
     <!-- handlers/statuses.js ДО eventListStatuses.js (handleAddStatus вызывает updateStatusSelect) -->
     <script src="js/handlers/statuses.js"></script>
     <script src="js/components/eventListStatuses.js"></script>
@@ -382,6 +378,10 @@
     <script src="js/handlers/eventCreate.js"></script>
     <script src="js/handlers/events.js"></script>
     <script src="js/handlers/mapLinks.js"></script>
+    <!-- sidebar tabs + новые панели — ПОСЛЕ mapLinks.js (зависят от savedLinks) -->
+    <script src="js/components/sidebarTabs.js"></script>
+    <script src="js/components/linksPanel.js"></script>
+    <script src="js/components/projectsPanel.js"></script>
     <script src="js/app.js"></script>
 </body>
 
