@@ -2,3 +2,9 @@
 /agent-test.txt
 /test.txt
 /front/context.md
+
+# ТЗ, промпты, черновики (не для репозитория)
+/brief/
+/prompts/
+*.brief.md
+*.tz.md
