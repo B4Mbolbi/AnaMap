@@ -46,32 +46,30 @@ const App = {
         initMap();
 
         // 3. Загрузка событий и связей из активного проекта
-        const activeProject = Storage.loadProject(Storage.getActiveProjectId());
+        const activeProjectId = Storage.getActiveProjectId();
+        const activeProject = activeProjectId ? Storage.loadProject(activeProjectId) : null;
         
         if (activeProject && activeProject.events && activeProject.events.length > 0) {
             State.setEvents(activeProject.events);
             State.links = activeProject.links || [];
             savedLinks = State.links;
             console.log(`[App] Загружено ${activeProject.events.length} событий из проекта "${activeProject.name}"`);
-        } else {
-            // 4. Если проект пустой — загружаем из API/mock и сохраняем в проект
+        } else if (activeProject) {
+            // Проект есть, но пустой — загружаем из API/mock
             try {
                 const eventsData = await API.getEvents();
                 if (eventsData && eventsData.length > 0) {
                     State.setEvents(eventsData);
-                    
-                    // Сохраняем в активный проект
-                    if (activeProject) {
-                        activeProject.events = eventsData;
-                        activeProject.links = activeProject.links || [];
-                        Storage.saveProjects(Storage.loadProjects()); // Обновляем список
-                        Storage.saveProject(activeProject);
-                        console.log(`[App] Загружено ${eventsData.length} событий в проект "${activeProject.name}"`);
-                    }
+                    activeProject.events = eventsData;
+                    activeProject.links = activeProject.links || [];
+                    Storage.saveProject(activeProject);
+                    console.log(`[App] Загружено ${eventsData.length} событий в проект "${activeProject.name}"`);
                 }
             } catch (error) {
                 console.error('Failed to load events:', error);
             }
+        } else {
+            console.log('[App] Нет активного проекта — данные не загружены');
         }
 
         // 5. Привязка обработчиков событий

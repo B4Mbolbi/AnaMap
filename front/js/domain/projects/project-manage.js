@@ -57,6 +57,7 @@ function switchToProject(projectId) {
     renderLinksPanel();
     renderProjectsPanel();
     updateProjectSelector();
+    console.log('[Switch] Переключено на проект:', project.name, '| Событий:', fullProject.events?.length || 0);
 }
 
 /**

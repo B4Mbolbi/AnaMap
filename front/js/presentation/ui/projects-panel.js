@@ -39,12 +39,19 @@ function renderProjectsPanel() {
 
     if (projectsMeta.length === 0) {
         container.innerHTML = `
-            <div style="text-align:center;padding:24px 12px;color:var(--text-dim);font-size:12px;">
-                <div style="font-size:24px;margin-bottom:8px;">📁</div>
-                <div>Проектов пока нет</div>
-                <div style="margin-top:4px;font-size:10px;">Создайте первый проект</div>
+            <button id="btn-new-project-inline" style="width:100%;padding:10px;font-size:13px;background:var(--accent-blue);color:#fff;border:none;border-radius:var(--radius-md);cursor:pointer;margin-bottom:12px;">+ Новый проект</button>
+            <div style="text-align:center;padding:16px 12px;color:var(--text-dim);font-size:12px;">
+                <div style="margin-top:4px;">или импортируйте проект из JSON</div>
             </div>
         `;
+        var btnNew = document.getElementById('btn-new-project-inline');
+        if (btnNew) {
+            btnNew.addEventListener('click', function() {
+                var name = prompt('Название нового проекта:');
+                if (!name || name.trim() === '') return;
+                createAndSwitchToProject(name.trim());
+            });
+        }
         return;
     }
 

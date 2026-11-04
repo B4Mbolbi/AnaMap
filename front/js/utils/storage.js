@@ -311,7 +311,7 @@ const Storage = {
         }
 
         if (oldEvents.length === 0 && oldLinks.length === 0) {
-            this.createProject('Мой проект');
+            // Не создавать проект автоматически — пользователь создаст сам
             return;
         }
 

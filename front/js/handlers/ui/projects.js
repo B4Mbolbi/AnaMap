@@ -21,13 +21,13 @@ function updateProjectSelector() {
     selector.innerHTML = '';
     
     if (projects.length === 0) {
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'Нет проектов';
-        selector.appendChild(option);
+        selector.innerHTML = '<option value="">Нет проектов</option>';
+        var btnNew = document.getElementById('btn-new-project');
+        if (btnNew) btnNew.style.display = 'block';
         return;
     }
     
+    selector.innerHTML = '';
     projects.forEach(project => {
         const option = document.createElement('option');
         option.value = project.id;
@@ -37,6 +37,10 @@ function updateProjectSelector() {
         }
         selector.appendChild(option);
     });
+    
+    // Скрыть кнопку "+ Новый проект" когда есть проекты
+    var btnNew = document.getElementById('btn-new-project');
+    if (btnNew) btnNew.style.display = 'none';
 }
 
 /**
