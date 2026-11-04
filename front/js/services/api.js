@@ -51,7 +51,8 @@ const API = {
             return await this._request(CONFIG.ENDPOINTS.EVENTS, { method: 'GET' });
         } catch (error) {
             console.warn('[API] Бэкенд недоступен, используем mock-данные');
-            return TEST_DATA;
+            // TEST_DATA — массив проектов, извлекаем плоский массив событий
+            return getAllMockEvents();
         }
     },
 

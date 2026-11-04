@@ -61,55 +61,77 @@ front/
 │   ├── panels.css                # Категории, список событий
 │   └── scrollbar.css             # Кастомный скроллбар
 └── js/
-    ├── config.js                 # ⚙️ Конфигурация (API, константы, цвета)
-    ├── state.js                  # 🧠 Централизованное состояние
-    ├── app.js                    # 🏁 Точка входа
+    ├── core/                     # 🔧 Ядро приложения
+    │   ├── config.js             # ⚙️ Конфигурация (API, константы, цвета)
+    │   ├── state.js              # 🧠 Централизованное состояние
+    │   └── app.js                # 🏁 Точка входа
+    ├── domain/                   # 📦 Бизнес-логика
+    │   ├── events/
+    │   │   ├── event-create.js   # Создание события
+    │   │   ├── event-validation.js # Валидация формы
+    │   │   └── event-tags.js     # Система тегов
+    │   ├── links/
+    │   │   ├── link-mode.js      # Режим связывания
+    │   │   ├── link-render.js    # Рендеринг связей
+    │   │   └── link-highlight.js # Подсветка связей
+    │   └── projects/
+    │       ├── project-manage.js # CRUD проектов
+    │       └── project-panel.js  # UI панели проектов
+    ├── presentation/             # 🖼️ Презентация (UI)
+    │   ├── map/
+    │   │   ├── map.js            # Глобальное состояние карты
+    │   │   ├── map-init.js       # Инициализация Leaflet
+    │   │   ├── map-render.js     # Рендеринг маркеров
+    │   │   ├── map-labels.js     # Видимость лейблов
+    │   │   ├── map-year-clusters.js # Кластеры по годам
+    │   │   ├── map-heat.js       # Тепловая карта
+    │   │   └── map-navigate.js   # Навигация по событиям
+    │   └── ui/
+    │       ├── ui.js             # Оркестратор UI
+    │       ├── ui-count.js       # Счётчик событий
+    │       ├── ui-filters.js     # Фильтры по типам
+    │       ├── ui-status-filter.js # Фильтр по статусу
+    │       ├── ui-stats-types.js # Статистика по типам
+    │       ├── ui-stats-status.js # Статистика по статусам
+    │       ├── ui-timeline.js    # Таймлайн
+    │       ├── ui-modal.js       # Модалка категорий
+    │       ├── event-list.js     # Глобальное состояние списка
+    │       ├── event-list-render.js # Рендеринг списка
+    │       ├── event-list-actions.js # Удаление, статус
+    │       ├── event-list-detail.js # Модалка деталей
+    │       ├── event-list-statuses.js # Управление статусами
+    │       ├── sidebar-tabs.js   # Вкладки сайдбара
+    │       ├── links-panel.js    # Панель связей
+    │       └── projects-panel.js # Панель проектов
+    ├── handlers/                 # ⚡ Обработчики событий
+    │   ├── events/
+    │   │   └── event-init.js     # Оркестратор обработчиков
+    │   ├── links/
+    │   │   └── link-init.js      # Обработчики связей
+    │   └── ui/
+    │       ├── modal.js          # Модалка добавления
+    │       ├── map-pick.js       # Выбор координат с карты
+    │       ├── categories.js     # Управление категориями
+    │       ├── statuses.js       # Обновление селекта статусов
+    │       └── projects.js       # Селектор проектов
     ├── services/
     │   └── api.js                # Слой API (mock + real)
     ├── utils/
-    │   ├── storage.js            # localStorage обёртка
+    │   ├── storage-projects.js   # Хранилище проектов
+    │   ├── storage-data.js       # Хранилище данных
     │   ├── helpers.js            # Вспомогательные функции
-    │   └── export.js             # Экспорт/импорт/валидация
-    ├── data/
-    │   └── mock.js               # Тестовые данные
-    ├── components/               # 🖼️ UI-компоненты
-    │   ├── map.js                # Глобальное состояние карты
-    │   ├── mapInit.js            # Инициализация Leaflet
-    │   ├── mapRender.js          # Рендеринг маркеров
-    │   ├── mapLabels.js          # Видимость лейблов
-    │   ├── mapYearClusters.js    # Кластеры по годам
-    │   ├── mapHeat.js            # Тепловая карта
-    │   ├── mapNavigate.js        # Навигация по событиям
-    │   ├── ui.js                 # Оркестратор UI
-    │   ├── uiCount.js            # Счётчик событий
-    │   ├── uiFilters.js          # Фильтры по типам
-    │   ├── uiStatusFilter.js     # Фильтр по статусу
-    │   ├── uiStatsTypes.js       # Статистика по типам
-    │   ├── uiStatsStatus.js      # Статистика по статусам
-    │   ├── uiTimeline.js         # Таймлайн
-    │   ├── uiModal.js            # Модалка категорий
-    │   ├── eventList.js          # Глобальное состояние списка
-    │   ├── eventListRender.js    # Рендеринг списка
-    │   ├── eventListActions.js   # Удаление, статус
-    │   ├── eventListDetail.js    # Модалка деталей
-    │   └── eventListStatuses.js  # Управление статусами
-    └── handlers/                 # ⚡ Обработчики событий
-        ├── validation.js         # Валидация формы
-        ├── tags.js               # Система тегов
-        ├── modal.js              # Модалка добавления
-        ├── mapPick.js            # Выбор координат с карты
-        ├── categories.js         # Управление категориями
-        ├── statuses.js           # Обновление селекта статусов
-        ├── eventCreate.js        # Создание события
-        ├── events.js             # Оркестратор обработчиков
-        └── mapLinks.js           # Связи между маркерами
+    │   ├── export-core.js        # Базовый экспорт
+    │   ├── export-events.js      # Экспорт/импорт событий
+    │   └── export-projects.js    # Экспорт/импорт проектов
+    └── data/
+        └── mock.js               # Тестовые данные
 ```
 
 ---
 
 ## ⚙️ Конфигурация
 
-Все настройки в одном месте — `js/config.js`:
+Все настройки в одном месте — `js/core/config.js`:
 
 | Раздел | Описание |
 |--------|----------|
@@ -126,7 +148,7 @@ front/
 
 ## 🗂️ Состояние (State)
 
-Централизованное хранилище — `js/state.js`:
+Централизованное хранилище — `js/core/state.js`:
 
 ```javascript
 State.events        // Массив всех событий

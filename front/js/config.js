@@ -95,6 +95,15 @@ const CONFIG = {
     },
 
     // ==========================================
+    // ТИПЫ СВЯЗЕЙ
+    // ==========================================
+    LINK_TYPES: {
+        cause:       { key: 'cause',       label: 'Причина',          icon: '⚡', color: '#ef4444' },
+        effect:      { key: 'effect',      label: 'Следствие',        icon: '📍', color: '#3b82f6' },
+        coincidence: { key: 'coincidence', label: 'Совпадение',       icon: '🔗', color: '#a855f7' }
+    },
+
+    // ==========================================
     // СВЯЗИ МЕЖДУ МАРКЕРАМИ
     // ==========================================
     LINK: {
@@ -102,6 +111,13 @@ const CONFIG = {
         WEIGHT: 2,
         OPACITY: 0.6,
         DASH_ARRAY: '8, 6'
+    },
+
+    // Стили линий по типам связей
+    LINK_STYLES: {
+        cause:       { dashArray: null,          weight: 3, opacity: 0.8 },
+        effect:      { dashArray: '10, 6',       weight: 2, opacity: 0.7 },
+        coincidence: { dashArray: '6, 4, 2, 4',  weight: 2, opacity: 0.6 }
     },
 
     // ==========================================

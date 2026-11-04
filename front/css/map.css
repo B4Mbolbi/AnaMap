@@ -1,6 +1,6 @@
 /* ==========================================
-   КАРТА
-   ========================================== */
+    КАРТА
+    ========================================== */
 .map-container {
     flex: 1;
     position: relative;
@@ -47,8 +47,8 @@
 }
 
 /* ==========================================
-   КЛАСТЕРЫ ПО ГОДАМ
-   ========================================== */
+    КЛАСТЕРЫ ПО ГОДАМ
+    ========================================== */
 .year-cluster {
     transition: transform 0.2s ease;
     cursor: pointer;
@@ -59,8 +59,8 @@
 }
 
 /* ==========================================
-   СВЯЗИ МЕЖДУ МАРКЕРАМИ
-   ========================================== */
+    СВЯЗИ МЕЖДУ МАРКЕРАМИ
+    ========================================== */
 .btn-remove-link {
     margin-top: 8px;
     padding: 4px 8px;
@@ -78,10 +78,84 @@
 }
 
 /* ==========================================
-   ПОДСВЕТКА МАРКЕРОВ В РЕЖИМЕ СВЯЗИ
-   ========================================== */
+    ПОДСВЕТКА МАРКЕРОВ В РЕЖИМЕ СВЯЗИ
+    ========================================== */
 .event-marker-dot.link-selected {
     transform: scale(1.5);
     box-shadow: 0 0 12px 4px rgba(59, 130, 246, 0.6);
     transition: transform var(--transition), box-shadow var(--transition);
+}
+
+/* ==========================================
+    СТИЛИ ЛИНИЙ СВЯЗЕЙ ПО ТИПАМ
+    ========================================== */
+/* cause — сплошная линия */
+.leaflet-interactive[data-link-type="cause"] {
+    stroke-dasharray: none !important;
+    stroke-width: 3px;
+}
+
+/* effect — пунктирная линия */
+.leaflet-interactive[data-link-type="effect"] {
+    stroke-dasharray: 10, 6 !important;
+}
+
+/* coincidence — штрихпунктирная */
+.leaflet-interactive[data-link-type="coincidence"] {
+    stroke-dasharray: 6, 4, 2, 4 !important;
+}
+
+/* ==========================================
+    ТАЙМЛАЙН — СЕКЦИЯ СВЯЗЕЙ
+    ========================================== */
+.timeline-container .timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    margin-bottom: 4px;
+}
+
+.timeline-container .timeline-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.timeline-container .timeline-total {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.timeline-container .timeline-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.timeline-container .timeline-month-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    min-width: 60px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.timeline-container .timeline-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--border-subtle);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.timeline-container .timeline-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width var(--transition);
+}
+
+.timeline-container .timeline-bar-fill.empty {
+    background: transparent !important;
 }

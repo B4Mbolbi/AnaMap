@@ -35,6 +35,9 @@
             </div>
         </div>
         <div class="header-right">
+            <select id="project-selector" class="project-selector" title="Выбрать проект">
+                <option value="">Загрузка проектов...</option>
+            </select>
             <div class="badge">
                 <div class="dot"></div>
                 <span id="event-count">0 событий</span>
@@ -333,56 +336,112 @@
         </div>
     </div>
 
+    <!-- Модалка выбора типа связи -->
+    <div id="modal-link-type" class="modal hidden">
+        <div class="modal-content" style="max-width:440px;">
+            <h2 class="modal-title">Новая связь</h2>
+            <div style="margin-bottom:16px;padding:12px;background:var(--bg-card);border-radius:var(--radius-md);">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">От</div>
+                <div id="link-from-desc" style="font-size:13px;color:var(--text-primary);margin-bottom:8px;"></div>
+                <div style="font-size:10px;color:var(--text-dim);text-align:center;">↓</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:8px;margin-bottom:4px;">К</div>
+                <div id="link-to-desc" style="font-size:13px;color:var(--text-primary);"></div>
+            </div>
+            <div class="form-group">
+                <label>Тип связи</label>
+                <div id="link-type-options" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+            </div>
+            <div class="form-group" style="margin-top:12px;">
+                <label>Комментарий (необязательно)</label>
+                <textarea id="link-comment-input" placeholder="Пояснение к связи..." rows="2" style="resize:vertical;"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-cancel-link-type" class="btn-cancel">Отмена</button>
+                <button id="btn-save-link-type" class="btn-primary">Создать связь</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
-    <!-- Собственные скрипты (порядок важен: config -> state -> utils -> data -> services -> components -> handlers -> app) -->
+    <!-- ========================================== -->
+    <!-- Порядок загрузки: config → state → storage → helpers → export → data → services → domain → presentation → handlers → app -->
+    <!-- ========================================== -->
+    
+    <!-- Config & State -->
     <script src="js/config.js"></script>
-    <script src="js/state.js"></script>
+    <script src="js/core/state.js"></script>
+    
+    <!-- Storage & Utils -->
     <script src="js/utils/storage.js"></script>
     <script src="js/utils/helpers.js"></script>
-    <script src="js/data/mock.js"></script>
-    <script src="js/services/api.js"></script>
-    <script src="js/components/map.js"></script>
-    <script src="js/components/mapInit.js"></script>
-    <script src="js/components/mapRender.js"></script>
-    <script src="js/components/mapLabels.js"></script>
-    <script src="js/components/mapYearClusters.js"></script>
-    <script src="js/components/mapHeat.js"></script>
-    <script src="js/components/mapNavigate.js"></script>
-    <script src="js/components/ui.js"></script>
-    <script src="js/components/uiCount.js"></script>
-    <script src="js/components/uiFilters.js"></script>
-    <script src="js/components/uiStatusFilter.js"></script>
-    <script src="js/components/uiStatsTypes.js"></script>
-    <script src="js/components/uiStatsStatus.js"></script>
-    <script src="js/components/uiTimeline.js"></script>
-    <script src="js/components/uiModal.js"></script>
-    <script src="js/components/eventList.js"></script>
-    <script src="js/components/eventListRender.js"></script>
-    <script src="js/components/eventListActions.js"></script>
-    <script src="js/components/eventListDetail.js"></script>
-    <!-- handlers/statuses.js ДО eventListStatuses.js (handleAddStatus вызывает updateStatusSelect) -->
-    <script src="js/handlers/statuses.js"></script>
-    <script src="js/components/eventListStatuses.js"></script>
-    <script src="js/components/eventListHandlers.js"></script>
     <script src="js/utils/export.js"></script>
-    <!-- handlers: зависимости → оркестратор -->
-    <script src="js/handlers/validation.js"></script>
-    <script src="js/handlers/tags.js"></script>
-    <script src="js/handlers/modal.js"></script>
-    <script src="js/handlers/mapPick.js"></script>
-    <script src="js/handlers/categories.js"></script>
-    <script src="js/handlers/eventCreate.js"></script>
-    <script src="js/handlers/events.js"></script>
-    <script src="js/handlers/mapLinks.js"></script>
-    <!-- sidebar tabs + новые панели — ПОСЛЕ mapLinks.js (зависят от savedLinks) -->
-    <script src="js/components/sidebarTabs.js"></script>
-    <script src="js/components/linksPanel.js"></script>
-    <script src="js/components/projectsPanel.js"></script>
-    <script src="js/app.js"></script>
+    
+    <!-- Data -->
+    <script src="js/data/mock.js"></script>
+    
+    <!-- Services -->
+    <script src="js/services/api.js"></script>
+    
+    <!-- Domain: Events -->
+    <script src="js/domain/events/event-create.js"></script>
+    <script src="js/domain/events/event-validation.js"></script>
+    <script src="js/domain/events/event-tags.js"></script>
+    
+    <!-- Domain: Links -->
+    <script src="js/domain/links/link-mode.js"></script>
+    <script src="js/domain/links/link-render.js"></script>
+    <script src="js/domain/links/link-highlight.js"></script>
+    
+    <!-- Domain: Projects -->
+    <script src="js/domain/projects/project-manage.js"></script>
+    <script src="js/domain/projects/project-panel.js"></script>
+    
+    <!-- Presentation: Map -->
+    <script src="js/presentation/map/map.js"></script>
+    <script src="js/presentation/map/map-init.js"></script>
+    <script src="js/presentation/map/map-render.js"></script>
+    <script src="js/presentation/map/map-labels.js"></script>
+    <script src="js/presentation/map/map-year-clusters.js"></script>
+    <script src="js/presentation/map/map-heat.js"></script>
+    <script src="js/presentation/map/map-navigate.js"></script>
+    
+    <!-- Presentation: UI -->
+    <script src="js/presentation/ui/ui.js"></script>
+    <script src="js/presentation/ui/ui-count.js"></script>
+    <script src="js/presentation/ui/ui-filters.js"></script>
+    <script src="js/presentation/ui/ui-status-filter.js"></script>
+    <script src="js/presentation/ui/ui-stats-types.js"></script>
+    <script src="js/presentation/ui/ui-stats-status.js"></script>
+    <script src="js/presentation/ui/ui-timeline.js"></script>
+    <script src="js/presentation/ui/ui-modal.js"></script>
+    <script src="js/presentation/ui/event-list.js"></script>
+    <script src="js/presentation/ui/event-list-render.js"></script>
+    <script src="js/presentation/ui/event-list-actions.js"></script>
+    <script src="js/presentation/ui/event-list-detail.js"></script>
+    <script src="js/presentation/ui/event-list-statuses.js"></script>
+    <script src="js/presentation/ui/sidebar-tabs.js"></script>
+    <script src="js/presentation/ui/links-panel.js"></script>
+    <script src="js/presentation/ui/projects-panel.js"></script>
+    
+    <!-- Handlers: Events -->
+    <script src="js/handlers/events/event-init.js"></script>
+    
+    <!-- Handlers: Links -->
+    <script src="js/handlers/links/link-init.js"></script>
+    
+    <!-- Handlers: UI -->
+    <script src="js/handlers/ui/modal.js"></script>
+    <script src="js/handlers/ui/map-pick.js"></script>
+    <script src="js/handlers/ui/categories.js"></script>
+    <script src="js/handlers/ui/statuses.js"></script>
+    <script src="js/handlers/ui/projects.js"></script>
+    
+    <!-- App Entry -->
+    <script src="js/core/app.js"></script>
 </body>
 
 </html>
