@@ -11,7 +11,7 @@
 /**
  * Обработчик добавления новой категории
  */
-async function handleAddCategory() {
+function handleAddCategory() {
     const nameInput = document.getElementById('cat-new-name');
     const colorInput = document.getElementById('cat-new-color');
 
@@ -40,24 +40,19 @@ async function handleAddCategory() {
         color
     };
 
-    // Сохраняем категорию (через API — сейчас это localStorage)
-    try {
-        await API.saveCategories([...custom, newCategory]);
+    // Сохраняем категорию в Storage
+    Storage.saveCategories([...custom, newCategory]);
 
-        // Очищаем поля и обновляем UI
-        nameInput.value = '';
-        colorInput.value = CONFIG.CUSTOM_COLORS[custom.length % CONFIG.CUSTOM_COLORS.length];
+    // Очищаем поля и обновляем UI
+    nameInput.value = '';
+    colorInput.value = CONFIG.CUSTOM_COLORS[custom.length % CONFIG.CUSTOM_COLORS.length];
 
-        renderCategoriesModal();
-        renderFilterButtons();
-        renderStatsByTypes();
+    renderCategoriesModal();
+    renderFilterButtons();
+    renderStatsByTypes();
 
-        // Обновляем селект в модалке добавления события
-        updateEventTypeSelect();
-    } catch (error) {
-        console.error('Ошибка при добавлении категории:', error);
-        alert('Ошибка при сохранении категории');
-    }
+    // Обновляем селект в модалке добавления события
+    updateEventTypeSelect();
 }
 
 /**

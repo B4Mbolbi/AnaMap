@@ -15,7 +15,7 @@ function openEventDetail(id) {
     const ev = State.events.find(e => e.id === id);
     if (!ev) return;
 
-    currentDetailEventId = id;
+    EventListState.currentDetailId = id;
     const cfg = getCategoryConfig(ev.type);
     const allStatuses = getAllStatuses();
     const currentStatus = allStatuses.find(s => s.key === ev.status) || { label: ev.status, color: CONFIG.DEFAULT_COLOR };
@@ -73,6 +73,10 @@ function openEventDetail(id) {
     deleteBtn.style.background = cfg.color + '33';
     deleteBtn.style.color = cfg.color;
     deleteBtn.style.border = `1px solid ${cfg.color}66`;
+    deleteBtn.onclick = () => {
+        deleteEvent(ev.id);
+        closeEventDetail();
+    };
 
     document.getElementById('modal-event-detail').classList.remove('hidden');
 }
@@ -128,5 +132,5 @@ function _renderLinkItem(link, currentEvent) {
 /** Закрытие модалки деталей */
 function closeEventDetail() {
     document.getElementById('modal-event-detail').classList.add('hidden');
-    currentDetailEventId = null;
+    EventListState.currentDetailId = null;
 }

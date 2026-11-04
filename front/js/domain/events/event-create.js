@@ -4,7 +4,7 @@
  * ==========================================
  * 
  * Обработчик добавления нового события:
- * чтение формы, валидация, отправка в API.
+ * чтение формы, валидация, сохранение в Storage.
  * ==========================================
  */
 
@@ -31,35 +31,20 @@ function handleAddEvent() {
         status:    status,
         date:      date,
         description: desc,
-        tags:      [...eventTags],
+        tags:      [...TagEditor.tags],
         lat,
         lng,
         source:    source || 'Пользователь',
         district:  'Новый'
     };
 
-    // Отправляем на сервер (или добавляем локально)
-    API.addEvent(newEvent).then((created) => {
-        // Обновляем локальное состояние из ответа API (с правильным id)
-        State.events.push(created);
+    // Сохраняем через Store (commit → _persist → Storage.saveEvents)
+    Store.commit(state => { state.events.push(newEvent); }, 'events');
 
-        // Закрываем модалку и очищаем форму
-        document.getElementById('modal-add').classList.add('hidden');
-        document.getElementById('add-source').value = '';
-        document.getElementById('add-desc').value = '';
-        eventTags = [];
-        renderTagChips();
-        clearValidation();
-
-        // Сохраняем в localStorage
-        Storage.saveEvents();
-
-        // Перерисовываем карту и UI
-        renderMap();
-        renderUI();
-        renderEventList();
-    }).catch(err => {
-        console.error('Failed to add event:', err);
-        console.error('Ошибка при добавлении события');
-    });
+    // Закрываем модалку и очищаем форму
+    document.getElementById('modal-add').classList.add('hidden');
+    document.getElementById('add-source').value = '';
+    document.getElementById('add-desc').value = '';
+    TagEditor.reset();
+    clearValidation();
 }

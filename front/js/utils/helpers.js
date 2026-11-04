@@ -8,6 +8,7 @@
  * - Категории (базовые + пользовательские)
  * - Статусы (базовые + пользовательские)
  * - Группировка событий
+ * - Нормализация проектов и событий
  * ==========================================
  */
 
@@ -83,15 +84,6 @@ function getAllStatuses() {
 }
 
 /**
- * Получить конфигурацию категории для события
- * @param {string} type - ключ типа
- * @returns {object} {label, color}
- */
-function getEventCategoryConfig(type) {
-    return getCategoryConfig(type);
-}
-
-/**
  * Сгруппировать события по типам
  * @returns {Array} массив {key, label, color, events}
  */
@@ -101,7 +93,7 @@ function groupEventsByCategory() {
 
     filtered.forEach(ev => {
         if (!groups[ev.type]) {
-            const cfg = getEventCategoryConfig(ev.type);
+            const cfg = getCategoryConfig(ev.type);
             groups[ev.type] = {
                 key: ev.type,
                 label: cfg.label,
@@ -142,19 +134,68 @@ function getLinkStyle(type) {
 }
 
 /**
- * Получить метку статуса
- * @param {string} status
- * @returns {string}
+ * Нормализовать одно событие: приведение типов, валидация координат/даты.
+ * @param {object} ev
+ * @returns {object|null}
  */
-function getStatusLabel(status) {
-    return CONFIG.STATUS_LABELS[status] || status;
+function normalizeEvent(ev) {
+    if (!ev || typeof ev !== 'object') return null;
+
+    const lat = Number(ev.lat);
+    const lng = Number(ev.lng);
+    if (!isFinite(lat) || !isFinite(lng)) {
+        console.warn('[normalizeEvent] Пропущено событие с невалидными координатами:', ev.id);
+        return null;
+    }
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        console.warn('[normalizeEvent] Координаты вне диапазона:', ev.id);
+        return null;
+    }
+
+    const id = String(ev.id || ('e' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)));
+
+    return {
+        ...ev,
+        id,
+        lat,
+        lng,
+        date: ev.date && /^\d{4}-\d{2}-\d{2}$/.test(ev.date)
+            ? ev.date
+            : new Date().toISOString().slice(0, 10),
+        type: String(ev.type || 'personal'),
+        status: String(ev.status || 'planned'),
+        description: String(ev.description || '').trim() || '(без описания)',
+        source: ev.source ? String(ev.source) : '',
+        district: ev.district ? String(ev.district) : '',
+        tags: Array.isArray(ev.tags) ? ev.tags.map(String) : []
+    };
 }
 
 /**
- * Получить цвет статуса
- * @param {string} status
- * @returns {string}
+ * Нормализовать проект: события, ссылки, поля.
+ * @param {object} raw
+ * @returns {object|null}
  */
-function getStatusColor(status) {
-    return CONFIG.STATUS_COLORS[status] || CONFIG.DEFAULT_COLOR;
+function normalizeProject(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    if (!Array.isArray(raw.events)) return null;
+
+    const events = raw.events.map(normalizeEvent).filter(Boolean);
+    const validIds = new Set(events.map(e => e.id));
+
+    const links = Array.isArray(raw.links)
+        ? raw.links.filter(l =>
+            l && l.from && l.to &&
+            validIds.has(l.from) && validIds.has(l.to) &&
+            ['cause', 'effect', 'coincidence'].includes(l.type || 'coincidence')
+          )
+        : [];
+
+    return {
+        id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        name: String(raw.name || 'Без названия').trim() || 'Без названия',
+        createdAt: raw.createdAt || new Date().toISOString(),
+        events,
+        links
+    };
 }

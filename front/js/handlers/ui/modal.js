@@ -37,8 +37,7 @@ function openAddModal(lat, lng) {
     }
 
     // Сбрасываем теги и валидацию
-    eventTags = [];
-    renderTagChips();
+    TagEditor.reset();
     clearValidation();
 
     modal.classList.remove('hidden');

@@ -61,8 +61,8 @@ function initEventHandlers() {
     // Закрыть модалку
     document.getElementById('modal-cancel').onclick = () => {
         document.getElementById('modal-add').classList.add('hidden');
-        if (mapPickMode) toggleMapPickMode();
-        eventTags = [];
+        if (MapPick.active) MapPick.toggle();
+        TagEditor.reset();
         clearValidation();
     };
 

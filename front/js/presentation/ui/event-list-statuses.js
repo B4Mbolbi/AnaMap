@@ -35,15 +35,17 @@ function renderStatusesModal() {
     });
 
     container.querySelectorAll('.category-delete').forEach(btn => {
-        btn.onclick = async () => {
-            await API.deleteStatus(btn.dataset.statusKey);
+        btn.onclick = () => {
+            // Удаляем статус из Storage
+            const custom = Storage.loadStatuses().filter(s => s.key !== btn.dataset.statusKey);
+            Storage.saveStatuses(custom);
             renderStatusesModal();
         };
     });
 }
 
 /** Добавление нового пользовательского статуса */
-async function handleAddStatus() {
+function handleAddStatus() {
     const nameInput = document.getElementById('status-new-name');
     const colorInput = document.getElementById('status-new-color');
     const name = nameInput.value.trim();
@@ -59,14 +61,11 @@ async function handleAddStatus() {
     const key = CONFIG.CUSTOM_PREFIX + name.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '_') + '_' + Date.now();
     const newStatus = { key, label: name, color };
 
-    try {
-        await API.saveStatuses([...custom, newStatus]);
-        nameInput.value = '';
-        colorInput.value = CONFIG.CUSTOM_COLORS[custom.length % CONFIG.CUSTOM_COLORS.length];
-        renderStatusesModal();
-        updateStatusSelect();
-    } catch (error) {
-        console.error('[EventList] Ошибка при добавлении статуса:', error);
-        alert('Ошибка при сохранении статуса');
-    }
+    // Сохраняем в Storage
+    Storage.saveStatuses([...custom, newStatus]);
+    
+    nameInput.value = '';
+    colorInput.value = CONFIG.CUSTOM_COLORS[custom.length % CONFIG.CUSTOM_COLORS.length];
+    renderStatusesModal();
+    updateStatusSelect();
 }

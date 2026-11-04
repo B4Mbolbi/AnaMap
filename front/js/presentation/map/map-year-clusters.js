@@ -44,6 +44,6 @@ function renderYearClusters() {
             </div>
         `);
 
-        map.addLayer(marker);
+        MapView.map.addLayer(marker);
     });
 }

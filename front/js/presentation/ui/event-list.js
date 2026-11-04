@@ -1,11 +1,20 @@
 /**
  * ==========================================
- * СПИСОК СОБЫТИЙ
+ * EVENT LIST STATE — OBJECT ENCAPSULATION
  * ==========================================
  * 
- * Оркестратор: глобальное состояние,
- * зависимость от всех подмодулей.
+ * Инкапсуляция состояния списка событий.
  * ==========================================
  */
 
-var currentDetailEventId = null;
+const EventListState = {
+    /** ID события в детальном просмотре */
+    currentDetailId: null
+};
+
+// Backward compatibility: currentDetailEventId как геттер/сеттер
+Object.defineProperty(globalThis, 'currentDetailEventId', {
+    get() { return EventListState.currentDetailId; },
+    set(v) { EventListState.currentDetailId = v; },
+    configurable: true
+});

@@ -1,12 +1,10 @@
 /**
  * ==========================================
- * СВЯЗИ — ПОДСВЕТКА (LINK HIGHLIGHTING)
+ * LINK HIGHLIGHT — ПОДСВЕТКА СВЯЗЕЙ
  * ==========================================
  * 
- * Подсветка связей при клике на маркер:
- * - Выделение связанных линий
- * - Подсветка связанных маркеров
- * - Подсветка в сайдбаре
+ * Подсветка связей при клике на маркер.
+ * Использует MapView.eventMarkers и getLinkStyle.
  * ==========================================
  */
 
@@ -32,7 +30,7 @@ function highlightEventLinks(eventId) {
     const linkedEventIds = new Set();
     
     // Подсвечиваем линии
-    linkLines.forEach(polyline => {
+    LinkMode.lines.forEach(polyline => {
         const link = State.links.find(l => l.id === polyline._linkId);
         if (!link) return;
         
@@ -48,8 +46,8 @@ function highlightEventLinks(eventId) {
     });
     
     // Подсвечиваем маркеры
-    Object.keys(_eventMarkers).forEach(id => {
-        const marker = _eventMarkers[id];
+    Object.keys(MapView.eventMarkers).forEach(id => {
+        const marker = MapView.eventMarkers[id];
         if (!marker || !marker._icon) return;
         
         if (linkedEventIds.has(id)) {
@@ -71,7 +69,7 @@ function clearLinkHighlight() {
     _highlightedLines.forEach(polyline => {
         const link = State.links.find(l => l.id === polyline._linkId);
         if (link) {
-            polyline.setStyle(_getLinkStyle(link.type));
+            polyline.setStyle(getLinkStyle(link.type));
         }
     });
     _highlightedLines = [];
@@ -84,8 +82,8 @@ function clearLinkHighlight() {
     });
     _highlightedMarkers = [];
     
-    Object.keys(_eventMarkers).forEach(id => {
-        const marker = _eventMarkers[id];
+    Object.keys(MapView.eventMarkers).forEach(id => {
+        const marker = MapView.eventMarkers[id];
         if (marker && marker._icon) {
             marker._icon.style.opacity = '';
         }

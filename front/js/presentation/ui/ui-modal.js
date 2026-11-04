@@ -36,8 +36,10 @@ function renderCategoriesModal() {
 
     // Обработчики удаления
     container.querySelectorAll('.category-delete').forEach(btn => {
-        btn.onclick = async () => {
-            await API.deleteCategory(btn.dataset.key);
+        btn.onclick = () => {
+            // Удаляем категорию из Storage
+            const custom = Storage.loadCategories().filter(c => c.key !== btn.dataset.key);
+            Storage.saveCategories(custom);
             renderCategoriesModal();
             renderFilterButtons();
             renderStatsByTypes();

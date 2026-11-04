@@ -10,23 +10,27 @@
 
 /** Обновить слой тепловой карты */
 function updateHeatLayer() {
+    if (!MapView.map) return;
+    const htl = _getLayer(heatLayer);
+    if (!htl) return;
     const filtered = State.getFilteredEvents();
     const points = filtered.map(ev => [ev.lat, ev.lng, 0.6]);
-    heatLayer.setLatLngs(points);
-    heatLayer.redraw();
+    htl.setLatLngs(points);
+    htl.redraw();
 }
 
 /** Переключить видимость тепловой карты */
 function toggleHeatLayer() {
-    heatVisible = !heatVisible;
+    MapView.heatVisible = !MapView.heatVisible;
     const btn = document.getElementById('btn-heat-mode');
+    const htl = _getLayer(heatLayer);
 
-    if (heatVisible) {
-        heatLayer.addTo(map);
+    if (MapView.heatVisible) {
+        htl.addTo(MapView.map);
         updateHeatLayer();
         btn.classList.add('active');
     } else {
-        map.removeLayer(heatLayer);
+        MapView.map.removeLayer(htl);
         btn.classList.remove('active');
     }
 }

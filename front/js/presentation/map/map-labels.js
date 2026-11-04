@@ -10,12 +10,17 @@
 
 /** Обновить видимость лейблов в зависимости от зума */
 function updateLabelsVisibility() {
-    const showLabels = map.getZoom() >= CONFIG.LABEL_ZOOM_THRESHOLD;
+    if (!MapView.map) return;
 
-    markersLayer.eachLayer(layer => {
-        const tooltip = layer.getTooltip();
-        if (tooltip) {
-            tooltip.setOpacity(showLabels ? 1 : 0);
-        }
-    });
+    const showLabels = MapView.map.getZoom() >= CONFIG.LABEL_ZOOM_THRESHOLD;
+
+    const mkl = _getLayer(markersLayer);
+    if (mkl) {
+        mkl.eachLayer(layer => {
+            const tooltip = layer.getTooltip();
+            if (tooltip) {
+                tooltip.setOpacity(showLabels ? 1 : 0);
+            }
+        });
+    }
 }

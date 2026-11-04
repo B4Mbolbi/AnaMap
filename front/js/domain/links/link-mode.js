@@ -1,84 +1,139 @@
 /**
  * ==========================================
- * СВЯЗИ — РЕЖИМ СВЯЗИ (LINK MODE)
+ * LINK MODE — OBJECT ENCAPSULATION
  * ==========================================
  * 
- * Управление режимом связывания маркеров:
- * - Вход/выход из режима
- * - Выбор маркеров
- * - Подсказки режима
+ * Инкапсуляция режима связей в объект.
+ * Устраняет гонки порядка скриптов.
  * ==========================================
  */
 
-var linkMode = false;
-var linkSelection = []; // [{marker, data}]
-var linkLines = []; // L.polyline[]
+const LinkMode = {
+    /** Активен ли режим связи */
+    active: false,
+    /** Выбранные маркеры [{marker, data}] */
+    selection: [],
+    /** Отрисованные линии связи L.polyline[] */
+    lines: [],
 
-/**
- * Войти в режим связи
- */
-function enterLinkMode() {
-    linkMode = true;
-    linkSelection = [];
+    /** Войти в режим связи */
+    enter() {
+        this.active = true;
+        this.selection = [];
 
-    map.removeLayer(markersLayer);
+        const mkl = _getLayer(markersLayer);
+        const htl = _getLayer(heatLayer);
 
-    if (heatVisible) {
-        map.removeLayer(heatLayer);
-    }
+        MapView.map.removeLayer(mkl);
 
-    renderMap();
-
-    const btn = document.getElementById('btn-link-mode');
-    btn.classList.add('active');
-    btn.style.background = '#3b82f633';
-    btn.style.borderColor = '#3b82f666';
-    btn.style.color = '#3b82f6';
-    map.getContainer().style.cursor = 'crosshair';
-    showLinkHint();
-    updateLinkHint();
-}
-
-/**
- * Выйти из режима связи
- */
-function exitLinkMode() {
-    linkMode = false;
-
-    map.eachLayer(layer => {
-        if (layer._isEventMarker) {
-            map.removeLayer(layer);
+        if (MapView.heatVisible) {
+            MapView.map.removeLayer(htl);
         }
-    });
 
-    clearSelection();
-    map.addLayer(markersLayer);
-    renderMap();
+        renderMap();
 
-    if (heatVisible) {
-        heatLayer.addTo(map);
-        updateHeatLayer();
+        const btn = document.getElementById('btn-link-mode');
+        btn.classList.add('active');
+        btn.style.background = '#3b82f633';
+        btn.style.borderColor = '#3b82f666';
+        btn.style.color = '#3b82f6';
+        MapView.map.getContainer().style.cursor = 'crosshair';
+        showLinkHint();
+        this.updateHint();
+    },
+
+    /** Выйти из режима связи */
+    exit() {
+        this.active = false;
+
+        MapView.map.eachLayer(layer => {
+            if (layer._isEventMarker) {
+                MapView.map.removeLayer(layer);
+            }
+        });
+
+        this.clearSelection();
+        MapView.map.addLayer(_getLayer(markersLayer));
+        renderMap();
+
+        if (MapView.heatVisible) {
+            _getLayer(heatLayer).addTo(MapView.map);
+            updateHeatLayer();
+        }
+
+        const btn = document.getElementById('btn-link-mode');
+        btn.classList.remove('active');
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        MapView.map.getContainer().style.cursor = '';
+        hideLinkHint();
+    },
+
+    /** Переключить режим */
+    toggle() {
+        if (this.active) {
+            this.exit();
+        } else {
+            this.enter();
+        }
+    },
+
+    /** Показать подсказку */
+    updateHint() {
+        const hint = document.getElementById('link-hint');
+        if (!hint) return;
+        
+        const count = this.selection.length;
+        hint.innerHTML = `
+            <div style="font-weight:600;margin-bottom:4px;">🔗 Режим связи</div>
+            <div style="color:#94a3b8;">Выбрано: ${count} ${count === 1 ? 'маркер' : count < 5 ? 'маркера' : 'маркеров'}</div>
+            ${count >= 2 ? '<div style="color:#3b82f6;font-size:10px;margin-top:2px;">Нажмите на следующий маркер для связи</div>' : ''}
+            <div style="color:#64748b;font-size:10px;margin-top:4px;">Esc — отмена</div>
+        `;
+    },
+
+    /** Очистить выбор */
+    clearSelection() {
+        this.selection.forEach(item => {
+            if (item.marker && item.marker._icon) {
+                item.marker._icon.classList.remove('link-selected');
+            }
+        });
+        this.selection = [];
+
+        const lkl = _getLayer(linksLayer);
+        this.lines.forEach(l => lkl.removeLayer(l));
+        this.lines = [];
+
+        this.updateHint();
+    },
+
+    /** Добавить маркер в выборку */
+    addToSelection(marker, eventData) {
+        const exists = this.selection.some(item => item.data.id === eventData.id);
+        if (exists) {
+            this.selection = this.selection.filter(item => item.data.id !== eventData.id);
+            if (marker._icon) {
+                marker._icon.classList.remove('link-selected');
+            }
+            this.updateHint();
+            return;
+        }
+
+        this.selection.push({ marker, data: eventData });
+        
+        if (marker._icon) {
+            marker._icon.classList.add('link-selected');
+        }
+        
+        this.updateHint();
+        
+        if (this.selection.length >= 2) {
+            createLink();
+        }
     }
-
-    const btn = document.getElementById('btn-link-mode');
-    btn.classList.remove('active');
-    btn.style.background = '';
-    btn.style.borderColor = '';
-    btn.style.color = '';
-    map.getContainer().style.cursor = '';
-    hideLinkHint();
-}
-
-/**
- * Переключить режим связи
- */
-function toggleLinkMode() {
-    if (linkMode) {
-        exitLinkMode();
-    } else {
-        enterLinkMode();
-    }
-}
+};
 
 /**
  * Показать подсказку режима связи
@@ -119,64 +174,4 @@ function showLinkHint() {
 function hideLinkHint() {
     const hint = document.getElementById('link-hint');
     if (hint) hint.remove();
-}
-
-/**
- * Обновить подсказку с выбранными маркерами
- */
-function updateLinkHint() {
-    const hint = document.getElementById('link-hint');
-    if (!hint) return;
-    
-    const count = linkSelection.length;
-    hint.innerHTML = `
-        <div style="font-weight:600;margin-bottom:4px;">🔗 Режим связи</div>
-        <div style="color:#94a3b8;">Выбрано: ${count} ${count === 1 ? 'маркер' : count < 5 ? 'маркера' : 'маркеров'}</div>
-        ${count >= 2 ? '<div style="color:#3b82f6;font-size:10px;margin-top:2px;">Нажмите на следующий маркер для связи</div>' : ''}
-        <div style="color:#64748b;font-size:10px;margin-top:4px;">Esc — отмена</div>
-    `;
-}
-
-/**
- * Очистить выбор и временные линии
- */
-function clearSelection() {
-    linkSelection.forEach(item => {
-        if (item.marker && item.marker._icon) {
-            item.marker._icon.classList.remove('link-selected');
-        }
-    });
-    linkSelection = [];
-
-    linkLines.forEach(l => linksLayer.removeLayer(l));
-    linkLines = [];
-
-    updateLinkHint();
-}
-
-/**
- * Добавить маркер в выборку
- */
-function addMarkerToSelection(marker, eventData) {
-    const exists = linkSelection.some(item => item.data.id === eventData.id);
-    if (exists) {
-        linkSelection = linkSelection.filter(item => item.data.id !== eventData.id);
-        if (marker._icon) {
-            marker._icon.classList.remove('link-selected');
-        }
-        updateLinkHint();
-        return;
-    }
-
-    linkSelection.push({ marker, data: eventData });
-    
-    if (marker._icon) {
-        marker._icon.classList.add('link-selected');
-    }
-    
-    updateLinkHint();
-    
-    if (linkSelection.length >= 2) {
-        createLink();
-    }
 }

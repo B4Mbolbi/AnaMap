@@ -1,10 +1,11 @@
 /**
  * ==========================================
- * СВЯЗИ — РЕНДЕРИНГ (LINK RENDERING)
+ * LINK RENDER — РЕНДЕРИНГ СВЯЗЕЙ
  * ==========================================
  * 
  * Создание связей, отрисовка линий,
  * попапы, модалка выбора типа.
+ * Использует getLinkStyle из helpers.js.
  * ==========================================
  */
 
@@ -12,10 +13,10 @@
  * Создать линию между выбранными маркерами
  */
 function createLink() {
-    if (linkSelection.length < 2) return;
+    if (LinkMode.selection.length < 2) return;
     
-    const from = linkSelection[linkSelection.length - 2];
-    const to = linkSelection[linkSelection.length - 1];
+    const from = LinkMode.selection[LinkMode.selection.length - 2];
+    const to = LinkMode.selection[LinkMode.selection.length - 1];
 
     if (from.data.id === to.data.id) return;
     if (State.linkExists(from.data.id, to.data.id)) {
@@ -28,8 +29,8 @@ function createLink() {
 
         const polyline = L.polyline(
             [[from.data.lat, from.data.lng], [to.data.lat, to.data.lng]],
-            _getLinkStyle(type)
-        ).addTo(linksLayer);
+            getLinkStyle(type)
+        ).addTo(_getLayer(linksLayer));
         
         polyline.bindPopup(_createLinkPopup(from.data, to.data, polyline));
         
@@ -40,35 +41,20 @@ function createLink() {
             comment: comment
         });
         polyline._linkId = link.id;
-        linkLines.push(polyline);
+        LinkMode.lines.push(polyline);
         
         if (typeof renderLinksPanel === 'function') {
             renderLinksPanel();
         }
         
-        linkSelection.forEach(item => {
+        LinkMode.selection.forEach(item => {
             if (item.marker && item.marker._icon) {
                 item.marker._icon.classList.remove('link-selected');
             }
         });
-        linkSelection = [to];
-        updateLinkHint();
+        LinkMode.selection = [to];
+        LinkMode.updateHint();
     });
-}
-
-/**
- * Получить стиль линии по типу связи
- */
-function _getLinkStyle(type) {
-    const linkType = CONFIG.LINK_TYPES[type] || CONFIG.LINK_TYPES.coincidence;
-    const linkStyle = CONFIG.LINK_STYLES[type] || CONFIG.LINK_STYLES.coincidence;
-    return {
-        color: linkType.color,
-        weight: linkStyle.weight,
-        opacity: linkStyle.opacity,
-        dashArray: linkStyle.dashArray,
-        lineCap: 'round'
-    };
 }
 
 /**
@@ -105,8 +91,8 @@ function _createLinkPopup(fromEvent, toEvent, polyline) {
 function removeLink(polyline, linkId) {
     if (!polyline) return;
     
-    linksLayer.removeLayer(polyline);
-    linkLines = linkLines.filter(l => l !== polyline);
+    _getLayer(linksLayer).removeLayer(polyline);
+    LinkMode.lines = LinkMode.lines.filter(l => l !== polyline);
     State.removeLink(linkId);
 }
 
@@ -114,8 +100,9 @@ function removeLink(polyline, linkId) {
  * Отрисовка сохранённых связей на карте
  */
 function renderSavedLinks() {
-    linkLines.forEach(l => linksLayer.removeLayer(l));
-    linkLines = [];
+    const lkl = _getLayer(linksLayer);
+    LinkMode.lines.forEach(l => lkl.removeLayer(l));
+    LinkMode.lines = [];
     
     const filteredLinks = State.getFilteredLinks();
     
@@ -127,8 +114,8 @@ function renderSavedLinks() {
         
         const polyline = L.polyline(
             [[fromEvent.lat, fromEvent.lng], [toEvent.lat, toEvent.lng]],
-            _getLinkStyle(link.type)
-        ).addTo(linksLayer);
+            getLinkStyle(link.type)
+        ).addTo(lkl);
         
         polyline._linkId = link.id;
         polyline.bindPopup(_createLinkPopup(fromEvent, toEvent, polyline));
@@ -161,7 +148,7 @@ function renderSavedLinks() {
             }
         });
         
-        linkLines.push(polyline);
+        LinkMode.lines.push(polyline);
     });
 }
 

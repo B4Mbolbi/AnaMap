@@ -9,35 +9,30 @@
  */
 
 /** Удаление категории */
-async function deleteCategory(key) {
-    await API.deleteCategory(key);
-    State.events = State.events.filter(e => e.type !== key);
-    State.filters.types.delete(key);
-    Storage.saveEvents();
-    renderMap();
-    renderUI();
-    renderEventList();
-    renderFilterButtons();
+function deleteCategory(key) {
+    // Удаляем категорию из Storage
+    const custom = Storage.loadCategories().filter(c => c.key !== key);
+    Storage.saveCategories(custom);
+    
+    // Удаляем события этой категории и фильтры через Store
+    Store.commit(state => {
+        state.events = state.events.filter(e => e.type !== key);
+        state.filters.types.delete(key);
+    }, 'events');
 }
 
 /** Изменение статуса события */
 function changeEventStatus(eventId, newStatus) {
-    const ev = State.events.find(e => e.id === eventId);
-    if (!ev) return;
-    ev.status = newStatus;
-    Storage.saveEvents();
-    renderMap();
-    renderUI();
-    renderEventList();
+    Store.commit(state => {
+        const ev = state.events.find(e => e.id === eventId);
+        if (ev) ev.status = newStatus;
+    }, 'events');
 }
 
 /** Удаление события */
-async function deleteEvent(id) {
-    await API.deleteEvent(id);
-    State.events = State.events.filter(e => e.id !== id);
-    Storage.saveEvents();
-    if (currentDetailEventId === id) closeEventDetail();
-    renderMap();
-    renderUI();
-    renderEventList();
+function deleteEvent(id) {
+    Store.commit(state => {
+        state.events = state.events.filter(e => e.id !== id);
+    }, 'events');
+    if (EventListState.currentDetailId === id) closeEventDetail();
 }

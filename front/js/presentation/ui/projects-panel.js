@@ -1,31 +1,13 @@
 /**
  * ==========================================
-     ВКЛАДКА «ПРОЕКТЫ»
-     ==========================================
-     
-     Управление проектами: создание,
-     переименование, удаление, экспорт/импорт.
-     ==========================================
-     */
-
-/**
- * Создать новый проект
- * @param {string} name 
- * @returns {object}
+ * PROJECTS PANEL — PRESENTATION СЛОЙ
+ * ==========================================
+ * 
+ * Только рендеринг карточек проектов.
+ * Читает данные из Storage, строит DOM.
+ * НЕ мутирует данные.
+ * ==========================================
  */
-function createProject(name) {
-    return Storage.createProject(name || 'Без названия');
-}
-
-/**
- * Получить активный проект
- * @returns {object|null}
- */
-function getActiveProject() {
-    const projects = Storage.loadProjects();
-    const activeId = Storage.getActiveProjectId();
-    return projects.find(p => p.id === activeId) || null;
-}
 
 /**
  * Рендеринг панели проектов
@@ -58,7 +40,6 @@ function renderProjectsPanel() {
     container.innerHTML = '';
 
     projectsMeta.forEach(projectMeta => {
-        // Загружаем полные данные проекта (с событиями и связями)
         const project = Storage.loadProject(projectMeta.id) || projectMeta;
         const isActive = project.id === activeId;
         const events = project.events || [];
@@ -106,7 +87,7 @@ function renderProjectsPanel() {
         if (btnOpen) {
             btnOpen.addEventListener('click', (e) => {
                 e.stopPropagation();
-                switchToProject(project.id);
+                switchProject(project.id);
             });
         }
 
@@ -114,7 +95,11 @@ function renderProjectsPanel() {
         if (btnRename) {
             btnRename.addEventListener('click', (e) => {
                 e.stopPropagation();
-                renameProject(project.id);
+                const newName = prompt('Новое имя проекта:', project.name);
+                if (!newName || newName.trim() === '') return;
+                renameProject(project.id, newName);
+                renderProjectsPanel();
+                updateProjectSelector();
             });
         }
 
@@ -132,6 +117,8 @@ function renderProjectsPanel() {
                 e.stopPropagation();
                 if (confirm('Удалить проект "' + project.name + '"?')) {
                     deleteProject(project.id);
+                    renderProjectsPanel();
+                    updateProjectSelector();
                 }
             });
         }
@@ -139,183 +126,3 @@ function renderProjectsPanel() {
         container.appendChild(card);
     });
 }
-
-/**
- * Переключиться на проект
- * @param {string} projectId 
- */
-function switchToProject(projectId) {
-    // 1. Сначала сохраняем текущие данные в текущий проект
-    const currentProject = Storage.loadProject(Storage.getActiveProjectId());
-    if (currentProject) {
-        currentProject.events = State.events || [];
-        currentProject.links = State.links || [];
-        Storage.saveProject(currentProject);
-    }
-
-    // 2. Загружаем данные нового проекта в State
-    const projects = Storage.loadProjects();
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-
-    Storage.setActiveProjectId(projectId);
-    
-    const fullProject = Storage.loadProject(projectId);
-    if (!fullProject) return;
-
-    State.setEvents(fullProject.events || []);
-    State.links = fullProject.links || [];
-    savedLinks = State.links;
-
-    // 3. Обновить всё
-    renderMap();
-    renderUI();
-    renderEventList();
-    renderLinksPanel();
-    renderProjectsPanel();
-    updateProjectSelector();
-}
-
-/**
- * Переименовать проект
- * @param {string} projectId 
- */
-function renameProject(projectId) {
-    const projects = Storage.loadProjects();
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-
-    const newName = prompt('Новое имя проекта:', project.name);
-    if (!newName || newName.trim() === '') return;
-
-    project.name = newName.trim();
-    Storage.saveProjects(projects);
-    Storage.saveProject(project);
-    renderProjectsPanel();
-    updateProjectSelector();
-}
-
-/**
- * Удалить проект
- * @param {string} projectId 
- */
-function deleteProject(projectId) {
-    let projects = Storage.loadProjects();
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-
-    projects = projects.filter(p => p.id !== projectId);
-    Storage.saveProjects(projects);
-    Storage.deleteProject(projectId);
-
-    // Если удалили активный — переключиться на первый или создать новый
-    if (Storage.getActiveProjectId() === projectId) {
-        if (projects.length > 0) {
-            Storage.setActiveProjectId(projects[0].id);
-            switchToProject(projects[0].id);
-        } else {
-            // Создаём новый проект, если удалили все
-            const newProject = Storage.createProject('Мой проект');
-            switchToProject(newProject.id);
-        }
-    }
-
-    renderProjectsPanel();
-    updateProjectSelector();
-}
-
-/**
- * Экспорт проекта в JSON
- * @param {string} projectId 
- */
-function exportProject(projectId) {
-    const projects = Storage.loadProjects();
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-
-    Export.exportProjectJSON(project);
-}
-
-/**
- * Импорт проекта из JSON
- * @param {File} file 
- */
-async function importProjectFromJSON(file) {
-    try {
-        const result = await Export.importProjectJSON(file);
-        if (!result.success) {
-            console.warn('[Projects] Ошибка импорта:', result.error);
-            return;
-        }
-
-        const data = result.data;
-        const allProjects = result.allProjects;
-
-        const projects = Storage.loadProjects();
-
-        // Если файл содержит массив проектов — импортировать все
-        if (allProjects && allProjects.length > 1) {
-            for (const proj of allProjects) {
-                const cloned = JSON.parse(JSON.stringify(proj));
-                cloned.id = 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-                cloned.createdAt = new Date().toISOString();
-                cloned.links = cloned.links || [];
-                projects.push(cloned);
-            }
-            Storage.saveProjects(projects);
-            for (const proj of allProjects) {
-                Storage.saveProject(JSON.parse(JSON.stringify(proj)));
-            }
-            // Переключиться на последний импортированный
-            const last = allProjects[allProjects.length - 1];
-            Storage.setActiveProjectId(projects[projects.length - 1].id);
-            switchToProject(projects[projects.length - 1].id);
-            updateProjectSelector();
-        } else {
-            // Один проект
-            data.id = 'proj_' + Date.now();
-            data.createdAt = new Date().toISOString();
-            data.links = data.links || [];
-            projects.push(data);
-            Storage.saveProjects(projects);
-            Storage.saveProject(data);
-            Storage.setActiveProjectId(data.id);
-
-            switchToProject(data.id);
-            updateProjectSelector();
-        }
-    } catch (err) {
-        console.error('[Projects] Ошибка импорта:', err);
-    }
-}
-
-// Обработчики кнопок проекта
-document.addEventListener('DOMContentLoaded', () => {
-    const btnNewProject = document.getElementById('btn-new-project');
-    const btnImportProject = document.getElementById('btn-import-project');
-    const fileImportProject = document.getElementById('file-import-project');
-
-    if (btnNewProject) {
-        btnNewProject.addEventListener('click', () => {
-            const name = prompt('Название нового проекта:');
-            if (!name || name.trim() === '') return;
-            createAndSwitchToProject(name.trim());
-        });
-    }
-
-    if (btnImportProject) {
-        btnImportProject.addEventListener('click', () => {
-            fileImportProject?.click();
-        });
-    }
-
-    if (fileImportProject) {
-        fileImportProject.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                importProjectFromJSON(file);
-                e.target.value = '';
-            }
-        });
-    }
-});

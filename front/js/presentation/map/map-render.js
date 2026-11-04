@@ -26,7 +26,7 @@ function _createEventMarker(ev, index) {
     const marker = L.marker([ev.lat, ev.lng], { icon });
 
     // Сохраняем маппинг eventId -> marker
-    _eventMarkers[ev.id] = marker;
+    MapView.eventMarkers[ev.id] = marker;
 
     // Попап события
     marker.bindPopup(`
@@ -51,12 +51,12 @@ function _createEventMarker(ev, index) {
 
     // Клик для режима связи
     marker.on('click', (e) => {
-        if (linkMode) {
+        if (LinkMode.active) {
             L.DomEvent.stopPropagation(e);
             L.DomEvent.preventDefault(e);
             e.originalEvent.stopPropagation();
             e.originalEvent.preventDefault();
-            addMarkerToSelection(marker, ev);
+            LinkMode.addToSelection(marker, ev);
         } else {
             // Подсветка связей события
             L.DomEvent.stopPropagation(e);
@@ -72,27 +72,34 @@ function _createEventMarker(ev, index) {
  * Отрисовка маркеров событий на карте
  */
 function renderMap() {
-    markersLayer.clearLayers();
+    // Guard: карта ещё не инициализирована
+    if (!MapView.map) return;
+
+    _getLayer(markersLayer).clearLayers();
 
     // Очистка кластеров-годов
-    map.eachLayer(layer => {
-        if (layer._isYearCluster) map.removeLayer(layer);
+    MapView.map.eachLayer(layer => {
+        if (layer._isYearCluster) MapView.map.removeLayer(layer);
     });
 
+    const mkl = _getLayer(markersLayer);
+    const lkl = _getLayer(linksLayer);
+    const htl = _getLayer(heatLayer);
+
     // Управление видимостью кластера
-    if (linkMode) {
-        map.removeLayer(markersLayer);
-    } else if (!map.hasLayer(markersLayer)) {
-        map.addLayer(markersLayer);
+    if (LinkMode.active) {
+        MapView.map.removeLayer(mkl);
+    } else if (!MapView.map.hasLayer(mkl)) {
+        MapView.map.addLayer(mkl);
     }
 
     // Скрытие обычных маркеров в режиме «По годам»
     if (State.viewMode === 'years') {
-        map.removeLayer(markersLayer);
+        MapView.map.removeLayer(mkl);
     }
 
     // Очищаем маппинг маркеров перед перерисовкой
-    Object.keys(_eventMarkers).forEach(id => delete _eventMarkers[id]);
+    Object.keys(MapView.eventMarkers).forEach(id => delete MapView.eventMarkers[id]);
 
     const filtered = State.getFilteredEvents();
 
@@ -100,11 +107,11 @@ function renderMap() {
         const marker = _createEventMarker(ev, index);
 
         // Размещение маркера
-        if (linkMode) {
+        if (LinkMode.active) {
             marker._isEventMarker = true;
-            map.addLayer(marker);
+            MapView.map.addLayer(marker);
         } else {
-            markersLayer.addLayer(marker);
+            mkl.addLayer(marker);
         }
     });
 
@@ -116,7 +123,7 @@ function renderMap() {
         renderYearClusters();
     }
 
-    if (heatVisible) {
+    if (MapView.heatVisible) {
         updateHeatLayer();
     }
 }

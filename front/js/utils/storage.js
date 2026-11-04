@@ -158,16 +158,24 @@ const Storage = {
 
     /**
      * Сохранение событий в активный проект
+     * @returns {boolean} false если нет активного проекта
      */
     saveEvents(events) {
         const projectId = this.getActiveProjectId();
-        if (!projectId) return;
+        if (!projectId) {
+            console.warn('[Storage.saveEvents] Нет активного проекта — данные не сохранены');
+            return false;
+        }
         
         const project = this.loadProject(projectId);
-        if (!project) return;
+        if (!project) {
+            console.warn('[Storage.saveEvents] Проект не найден:', projectId);
+            return false;
+        }
         
         project.events = events || [];
         this.saveProject(project);
+        return true;
     },
 
     // ==========================================
@@ -188,21 +196,24 @@ const Storage = {
 
     /**
      * Сохранение связей в активный проект
+     * @returns {boolean} false если нет активного проекта
      */
     saveLinks(links) {
         const projectId = this.getActiveProjectId();
-        if (!projectId) return;
+        if (!projectId) {
+            console.warn('[Storage.saveLinks] Нет активного проекта — данные не сохранены');
+            return false;
+        }
         
         const project = this.loadProject(projectId);
-        if (!project) return;
+        if (!project) {
+            console.warn('[Storage.saveLinks] Проект не найден:', projectId);
+            return false;
+        }
         
         project.links = links || [];
         this.saveProject(project);
-        
-        // Синхронизация с глобальным кэшем
-        if (typeof savedLinks !== 'undefined') {
-            savedLinks = links || [];
-        }
+        return true;
     },
 
     // ==========================================
@@ -259,6 +270,76 @@ const Storage = {
         } catch (error) {
             console.error('[Storage] Ошибка сохранения статусов:', error);
         }
+    },
+
+    // ==========================================
+    // АТОМАРНЫЕ CRUD-ОПЕРАЦИИ
+    // ==========================================
+
+    /**
+     * Добавить событие (без дубликатов)
+     * @param {object} ev 
+     * @returns {boolean} false если дубликат
+     */
+    addEvent(ev) {
+        const events = this.loadEvents();
+        if (events.some(e => e.id === ev.id)) {
+            console.warn('[Storage.addEvent] Дубликат id:', ev.id);
+            return false;
+        }
+        events.push(ev);
+        return this.saveEvents(events);
+    },
+
+    /**
+     * Обновить событие (частичная мутация)
+     * @param {string} id 
+     * @param {object} patch 
+     * @returns {boolean} false если не найдено
+     */
+    updateEvent(id, patch) {
+        const events = this.loadEvents();
+        const idx = events.findIndex(e => e.id === id);
+        if (idx === -1) return false;
+        events[idx] = { ...events[idx], ...patch };
+        return this.saveEvents(events);
+    },
+
+    /**
+     * Удалить событие
+     * @param {string} id 
+     * @returns {boolean} false если не найдено
+     */
+    removeEvent(id) {
+        const events = this.loadEvents();
+        if (!events.some(e => e.id === id)) return false;
+        return this.saveEvents(events.filter(e => e.id !== id));
+    },
+
+    /**
+     * Добавить связь (без дубликатов)
+     * @param {object} link 
+     * @returns {boolean} false если дубликат
+     */
+    addLink(link) {
+        const links = this.loadLinks();
+        if (links.some(l => l.id === link.id)) {
+            console.warn('[Storage.addLink] Дубликат id:', link.id);
+            return false;
+        }
+        links.push(link);
+        return this.saveLinks(links);
+    },
+
+    /**
+     * Удалить связь
+     * @param {number|string} id 
+     * @returns {boolean} false если не найдено
+     */
+    removeLink(id) {
+        const links = this.loadLinks();
+        if (!links.some(l => l.id === id)) return false;
+        return this.saveLinks(links.filter(l => l.id !== id));
     },
 
     // ==========================================

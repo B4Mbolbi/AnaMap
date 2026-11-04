@@ -81,10 +81,11 @@ function removeLinkById(linkId) {
     State.removeLink(linkId);
 
     // Удалить линию с карты
-    if (linksLayer) {
-        linksLayer.eachLayer(layer => {
+    const lkl = _getLayer(linksLayer);
+    if (lkl) {
+        lkl.eachLayer(layer => {
             if (layer._linkId === linkId) {
-                linksLayer.removeLayer(layer);
+                lkl.removeLayer(layer);
             }
         });
     }

@@ -4,80 +4,99 @@
  * ==========================================
  * 
  * Инициализация: загрузка данных, создание карты,
- * привязка обработчиков.
+ * привязка обработчиков, единая точка перерисовки.
  * ==========================================
  */
 
-/** Кэш связей — всегда ссылается на State.links */
-var savedLinks = [];
-
 /**
- * Загрузить сохранённые связи из Storage
- * @returns {Array}
+ * Обновить селектор проектов в шапке
  */
-function loadSavedLinks() {
-    return Storage.loadLinks();
-}
-
-/**
- * Сохранить связи в Storage
- * @param {Array} links 
- */
-function saveLinks(links) {
-    State.links = links || [];
-    savedLinks = State.links; // Синхронизация
-    Storage.saveLinks(State.links);
+function updateProjectSelector() {
+    const selector = document.getElementById('project-selector');
+    if (!selector) return;
+    
+    const projects = Storage.loadProjects();
+    const activeId = Storage.getActiveProjectId();
+    
+    selector.innerHTML = '';
+    
+    if (projects.length === 0) {
+        selector.innerHTML = '<option value="">Нет проектов</option>';
+        return;
+    }
+    
+    projects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project.id;
+        option.textContent = project.name;
+        if (project.id === activeId) {
+            option.selected = true;
+        }
+        selector.appendChild(option);
+    });
 }
 
 const App = {
 
     /**
+     * Единая точка перерисовки UI.
+     * Вызывается Store при каждом изменении состояния.
+     * @param {string} reason - 'events' | 'links' | 'filters' | 'projects' | 'view' | 'all'
+     */
+    refresh(reason) {
+        // Защита от вызова до инициализации
+        if (typeof renderMap !== 'function' && reason !== 'projects') return;
+
+        if (reason === 'all' || reason === 'events' || reason === 'filters' || reason === 'view') {
+            renderMap();
+            renderUI();
+            renderEventList();
+        }
+        if (reason === 'all' || reason === 'links') {
+            renderSavedLinks();
+            renderLinksPanel();
+        }
+        if (reason === 'all' || reason === 'projects') {
+            renderProjectsPanel();
+            updateProjectSelector();
+        }
+    },
+
+    /**
      * Главная функция инициализации приложения.
-     * Вызывается один раз при загрузке страницы.
      */
     async init() {
         // 0. Миграция старых данных в систему проектов
         Storage.migrateToProjects();
 
-        // 1. Инициализация системы вкладок сайдбара (ДО renderMap/renderUI)
+        // 1. Подписка на изменения Store — единая точка перерисовки
+        Store.subscribe((reason) => {
+            App.refresh(reason);
+        });
+
+        // 2. Инициализация системы вкладок сайдбара
         initSidebarTabs();
 
-        // 2. Инициализация карты
+        // 3. Инициализация карты
         initMap();
 
-        // 3. Загрузка событий и связей из активного проекта
-        const activeProjectId = Storage.getActiveProjectId();
-        const activeProject = activeProjectId ? Storage.loadProject(activeProjectId) : null;
-        
-        if (activeProject && activeProject.events && activeProject.events.length > 0) {
-            State.setEvents(activeProject.events);
-            State.links = activeProject.links || [];
-            savedLinks = State.links;
-            console.log(`[App] Загружено ${activeProject.events.length} событий из проекта "${activeProject.name}"`);
-        } else if (activeProject) {
-            // Проект есть, но пустой — загружаем из API/mock
-            try {
-                const eventsData = await API.getEvents();
-                if (eventsData && eventsData.length > 0) {
-                    State.setEvents(eventsData);
-                    activeProject.events = eventsData;
-                    activeProject.links = activeProject.links || [];
-                    Storage.saveProject(activeProject);
-                    console.log(`[App] Загружено ${eventsData.length} событий в проект "${activeProject.name}"`);
-                }
-            } catch (error) {
-                console.error('Failed to load events:', error);
-            }
+        // 4. Загрузить активный проект через switchProject
+        const activeId = Storage.getActiveProjectId();
+        if (activeId) {
+            switchProject(activeId);
         } else {
-            console.log('[App] Нет активного проекта — данные не загружены');
+            // Нет активного — создать пустой
+            const p = Storage.createProject('Мой проект');
+            switchProject(p.id);
         }
 
         // 5. Привязка обработчиков событий
         initEventHandlers();
         initEventListFilters();
         initLinkHandlers();
+        initStorageHandlers();
 
-        // 6. Обновление списка типов в селекте (с учетом пользовательских категорий)
+        // 6. Обновление списка типов в селекте
         updateEventTypeSelect();
         updateStatusSelect();
 
@@ -90,7 +109,7 @@ const App = {
         updateProjectSelector();
 
         // 8. Пересчет размеров карты при изменении окна
-        window.addEventListener('resize', () => map.invalidateSize());
+        window.addEventListener('resize', () => MapView.map.invalidateSize());
     }
 };
 

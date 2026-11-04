@@ -42,7 +42,7 @@
                 <div class="dot"></div>
                 <span id="event-count">0 событий</span>
             </div>
-            <button id="btn-new-project" class="btn-primary" style="display:none;">+ Новый проект</button>
+            <button id="btn-new-project-header" class="btn-primary" style="display:none;">+ Новый проект</button>
             <button id="btn-add-event" class="btn-primary">+ Добавить</button>
         </div>
     </header>
@@ -181,6 +181,18 @@
                     <div class="panel">
                         <div class="panel-title">Статусы</div>
                         <button id="btn-manage-statuses" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">+ Управление статусами</button>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">Полный бэкап</div>
+                        <div style="display:flex;gap:4px;">
+                            <button id="btn-export-backup" style="flex:1;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">Скачать всё</button>
+                            <button id="btn-import-backup" style="flex:1;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);border-radius:var(--radius-md);cursor:pointer;">Загрузить всё</button>
+                        </div>
+                        <input type="file" id="file-import-backup" accept=".json" style="display:none;">
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">Опасная зона</div>
+                        <button id="btn-clear-storage" style="width:100%;padding:8px;font-size:12px;border:1px solid var(--border-default);background:transparent;color:var(--accent-red);border-radius:var(--radius-md);cursor:pointer;">Очистить localStorage</button>
                     </div>
                 </section>
 
@@ -369,11 +381,14 @@
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
     <!-- ========================================== -->
-    <!-- Порядок загрузки: config → state → storage → helpers → export → data → services → domain → presentation → handlers → app -->
+    <!-- Порядок загрузки: config → store → state → storage → helpers → export → data → services → domain → presentation → handlers → app -->
     <!-- ========================================== -->
     
-    <!-- Config & State -->
+    <!-- Config -->
     <script src="js/config.js"></script>
+    
+    <!-- Core: Store (единый источник правды) + State (обратная совместимость) -->
+    <script src="js/core/store.js"></script>
     <script src="js/core/state.js"></script>
     
     <!-- Storage & Utils -->
@@ -383,9 +398,6 @@
     
     <!-- Data -->
     <script src="js/data/mock.js"></script>
-    
-    <!-- Services -->
-    <script src="js/services/api.js"></script>
     
     <!-- Domain: Events -->
     <script src="js/domain/events/event-create.js"></script>
@@ -397,9 +409,8 @@
     <script src="js/domain/links/link-render.js"></script>
     <script src="js/domain/links/link-highlight.js"></script>
     
-    <!-- Domain: Projects -->
-    <script src="js/domain/projects/project-manage.js"></script>
-    <script src="js/domain/projects/project-panel.js"></script>
+    <!-- Domain: Projects (только бизнес-логика) -->
+    <script src="js/domain/projects/project-service.js"></script>
     
     <!-- Presentation: Map -->
     <script src="js/presentation/map/map.js"></script>
@@ -440,8 +451,9 @@
     <script src="js/handlers/ui/categories.js"></script>
     <script src="js/handlers/ui/statuses.js"></script>
     <script src="js/handlers/ui/projects.js"></script>
+    <script src="js/handlers/ui/storage.js"></script>
     
-    <!-- App Entry -->
+    <!-- App Entry (Store.subscribe + App.init) -->
     <script src="js/core/app.js"></script>
 </body>
 

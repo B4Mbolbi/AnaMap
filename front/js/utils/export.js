@@ -271,30 +271,109 @@ const Export = {
             const text = await this._readFileAsText(file);
             const data = JSON.parse(text);
 
-            // Массив проектов (тестовые файлы)
-            if (Array.isArray(data)) {
-                if (data.length === 0) {
-                    return { success: false, error: 'Файл содержит пустой массив' };
-                }
-                // Проверить что хотя бы первый объект валиден
-                const first = data[0];
-                if (!first.name || !Array.isArray(first.events)) {
-                    return { success: false, error: 'Некорректный формат: каждый проект должен иметь name и events' };
-                }
-                // Вернуть первый проект (импорт одного)
-                return { success: true, data: data[0], allProjects: data };
+            const items = Array.isArray(data) ? data : [data];
+            if (items.length === 0) {
+                return { success: false, error: 'Файл пуст' };
             }
 
-            // Один проект
-            if (!data.name || !Array.isArray(data.events)) {
-                return { success: false, error: 'Некорректный формат файла проекта' };
+            // Валидировать каждый элемент: нужен объект с полем events (массив)
+            const validProjects = [];
+            let skipped = 0;
+
+            for (const item of items) {
+                if (item && typeof item === 'object' && Array.isArray(item.events)) {
+                    // name необязателен — подставим «Без названия»
+                    validProjects.push(item);
+                } else {
+                    skipped++;
+                    console.warn('[Export] Пропущен невалидный проект:', item?.name || item?.id || '(без name)');
+                }
             }
 
-            return { success: true, data };
+            if (validProjects.length === 0) {
+                return {
+                    success: false,
+                    error: `В файле нет ни одного проекта с полем "events" (массив). Пропущено: ${skipped}`
+                };
+            }
+
+            if (skipped > 0) {
+                console.warn(`[Export] Пропущено ${skipped} невалидных проектов из ${items.length}`);
+            }
+
+            return {
+                success: true,
+                data: validProjects[0],
+                allProjects: validProjects
+            };
         } catch (err) {
             console.error('[Export] Ошибка импорта проекта:', err);
-            return { success: false, error: `Ошибка чтения файла: ${err.message}` };
+            return { success: false, error: 'Ошибка чтения файла: ' + err.message };
         }
+    },
+
+    // ==========================================
+    // ПОЛНЫЙ БЭКАП (ВСЕГО localStorage)
+    // ==========================================
+
+    /**
+     * Экспорт полного бэкапа всего localStorage
+     */
+    exportFullBackup() {
+        const backup = {
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            projects: Storage.loadProjects(),
+            activeProjectId: Storage.getActiveProjectId(),
+            categories: Storage.loadCategories(),
+            statuses: Storage.loadStatuses(),
+            projectData: {}
+        };
+
+        Storage.loadProjects().forEach(p => {
+            backup.projectData[p.id] = Storage.loadProject(p.id);
+        });
+
+        this.downloadFile(
+            JSON.stringify(backup, null, 2),
+            `anemap_backup_${this.getDateString()}.json`,
+            'application/json'
+        );
+
+        // Отмечаем время последнего бэкапа
+        localStorage.setItem('anemap_last_backup', Date.now().toString());
+    },
+
+    /**
+     * Импорт полного бэкапа
+     * @param {File} file - файл .json
+     * @returns {Promise<object>} результат импорта
+     */
+    async importFullBackup(file) {
+        const text = await this._readFileAsText(file);
+        const backup = JSON.parse(text);
+
+        if (!backup.projects || !Array.isArray(backup.projects)) {
+            return { success: false, error: 'Неверный формат бэкапа' };
+        }
+
+        // Восстановить категории/статусы
+        if (backup.categories) Storage.saveCategories(backup.categories);
+        if (backup.statuses)   Storage.saveStatuses(backup.statuses);
+
+        // Восстановить проекты
+        Storage.saveProjects(backup.projects);
+        backup.projects.forEach(p => {
+            const full = backup.projectData?.[p.id];
+            if (full) Storage.saveProject(full);
+        });
+
+        // Активный проект
+        if (backup.activeProjectId) {
+            Storage.setActiveProjectId(backup.activeProjectId);
+        }
+
+        return { success: true, count: backup.projects.length };
     },
 
     // ==========================================

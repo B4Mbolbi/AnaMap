@@ -13,38 +13,41 @@
  * @param {string|number} eventId 
  */
 function showEventOnMap(eventId) {
-    const marker = _eventMarkers[eventId];
+    const marker = MapView.eventMarkers[eventId];
     if (!marker) {
         console.warn(`[Map] Маркер для события ${eventId} не найден`);
         return;
     }
 
+    const mkl = _getLayer(markersLayer);
+    const lkl = _getLayer(linksLayer);
+
     // Если маркер в кластере — сначала разворачиваем кластеры
-    if (!map.hasLayer(marker)) {
+    if (!MapView.map.hasLayer(marker)) {
         // Отключаем link mode чтобы не мешал
-        if (window.linkMode) {
-            window.exitLinkMode?.();
+        if (LinkMode.active) {
+            LinkMode.exit();
         }
 
         // Переводим карту в режим кластеров
-        if (map.hasLayer(linksLayer)) {
-            map.removeLayer(linksLayer);
+        if (MapView.map.hasLayer(lkl)) {
+            MapView.map.removeLayer(lkl);
         }
-        map.addLayer(markersLayer);
+        MapView.map.addLayer(mkl);
 
         // Разворачиваем кластеры чтобы найти маркер
-        map.setView([0, 0], 2); // временно уезжаем далеко
-        markersLayer.eachLayer(layer => {
+        MapView.map.setView([0, 0], 2); // временно уезжаем далеко
+        mkl.eachLayer(layer => {
             if (layer.getChildCount && layer.getChildCount() > 0) {
                 layer.zoomToBounds();
             }
         });
         // Возвращаемся к обычному виду
-        map.invalidateSize();
+        MapView.map.invalidateSize();
     }
 
     // Перемещаем камеру к маркеру
-    map.flyTo(marker.getLatLng(), 16, { duration: 0.8 });
+    MapView.map.flyTo(marker.getLatLng(), 16, { duration: 0.8 });
 
     // Открываем попап через небольшую задержку
     setTimeout(() => {
