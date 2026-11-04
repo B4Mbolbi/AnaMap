@@ -260,6 +260,9 @@ const Export = {
 
     /**
      * Импорт проекта из JSON-файла
+     * Поддерживает два формата:
+     *   1. Один объект: { name, events, links }
+     *   2. Массив объектов: [ { name, events, links }, ... ]
      * @param {File} file - файл .json
      * @returns {Promise<object>} результат импорта
      */
@@ -268,6 +271,21 @@ const Export = {
             const text = await this._readFileAsText(file);
             const data = JSON.parse(text);
 
+            // Массив проектов (тестовые файлы)
+            if (Array.isArray(data)) {
+                if (data.length === 0) {
+                    return { success: false, error: 'Файл содержит пустой массив' };
+                }
+                // Проверить что хотя бы первый объект валиден
+                const first = data[0];
+                if (!first.name || !Array.isArray(first.events)) {
+                    return { success: false, error: 'Некорректный формат: каждый проект должен иметь name и events' };
+                }
+                // Вернуть первый проект (импорт одного)
+                return { success: true, data: data[0], allProjects: data };
+            }
+
+            // Один проект
             if (!data.name || !Array.isArray(data.events)) {
                 return { success: false, error: 'Некорректный формат файла проекта' };
             }

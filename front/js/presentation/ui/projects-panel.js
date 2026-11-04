@@ -242,19 +242,41 @@ async function importProjectFromJSON(file) {
         }
 
         const data = result.data;
+        const allProjects = result.allProjects;
 
         const projects = Storage.loadProjects();
-        data.id = 'proj_' + Date.now();
-        data.createdAt = new Date().toISOString();
-        data.links = data.links || [];
-        projects.push(data);
-        Storage.saveProjects(projects);
-        Storage.saveProject(data);
-        Storage.setActiveProjectId(data.id);
 
-        // Переключиться на импортированный проект
-        switchToProject(data.id);
-        updateProjectSelector();
+        // Если файл содержит массив проектов — импортировать все
+        if (allProjects && allProjects.length > 1) {
+            for (const proj of allProjects) {
+                const cloned = JSON.parse(JSON.stringify(proj));
+                cloned.id = 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                cloned.createdAt = new Date().toISOString();
+                cloned.links = cloned.links || [];
+                projects.push(cloned);
+            }
+            Storage.saveProjects(projects);
+            for (const proj of allProjects) {
+                Storage.saveProject(JSON.parse(JSON.stringify(proj)));
+            }
+            // Переключиться на последний импортированный
+            const last = allProjects[allProjects.length - 1];
+            Storage.setActiveProjectId(projects[projects.length - 1].id);
+            switchToProject(projects[projects.length - 1].id);
+            updateProjectSelector();
+        } else {
+            // Один проект
+            data.id = 'proj_' + Date.now();
+            data.createdAt = new Date().toISOString();
+            data.links = data.links || [];
+            projects.push(data);
+            Storage.saveProjects(projects);
+            Storage.saveProject(data);
+            Storage.setActiveProjectId(data.id);
+
+            switchToProject(data.id);
+            updateProjectSelector();
+        }
     } catch (err) {
         console.error('[Projects] Ошибка импорта:', err);
     }
